@@ -1,14 +1,16 @@
 package com.example.projectx.model;
 
 public class Outfit {
-    String top;
-    String bottom;
-    String shoes;
-    String accessories;
-    String styleTag;
+    private String outfitId;
+    private String top;
+    private String bottom;
+    private String shoes;
+    private String accessories;
+    private String styleTag;
 
-
-    public Outfit(String top, String bottom, String shoes, String accessories, String styleTag) {
+    // --- Constructors ---
+    public Outfit(String outfitId, String top, String bottom, String shoes, String accessories, String styleTag) {
+        this.outfitId = outfitId;
         this.top = top;
         this.bottom = bottom;
         this.shoes = shoes;
@@ -16,10 +18,17 @@ public class Outfit {
         this.styleTag = styleTag;
     }
 
+    public Outfit(String top, String bottom, String shoes, String accessories, String styleTag) {
+        this(null, top, bottom, shoes, accessories, styleTag);
+    }
 
     public Outfit() {}
 
     // --- Getters ---
+    public String getOutfitId() {
+        return outfitId;
+    }
+
     public String getTop() {
         return top;
     }
@@ -41,6 +50,10 @@ public class Outfit {
     }
 
     // --- Setters ---
+    public void setOutfitId(String outfitId) {
+        this.outfitId = outfitId;
+    }
+
     public void setTop(String top) {
         this.top = top;
     }
@@ -61,15 +74,16 @@ public class Outfit {
         this.styleTag = styleTag;
     }
 
-
+    // --- Print / toString ---
     @Override
     public String toString() {
         return "Outfit{" +
-                "top='" + top + '\'' +
+                "outfitId='" + outfitId + '\'' +
+                ", top='" + top + '\'' +
                 ", bottom='" + bottom + '\'' +
                 ", shoes='" + shoes + '\'' +
                 ", accessories='" + accessories + '\'' +
                 ", styleTag='" + styleTag + '\'' +
                 '}';
     }
-}
+    }
