@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import com.example.projectx.model.Outfit;
 import com.example.projectx.model.Clothe;
 import com.example.projectx.model.User;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,8 +37,8 @@ public class DatabaseService {
     /// paths for different data types in the database
     /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users",
-                                CLOTHES_PATH = "clothes",
-                                OUTFITS_PATH = "outfits";
+            CLOTHES_PATH = "clothe",
+            OUTFITS_PATH = "outfit";
 
     /// callback interface for database operations
     /// @param <T> the type of the object to return
@@ -62,7 +63,7 @@ public class DatabaseService {
 
     /// use getInstance() to get an instance of this class
     /// @see DatabaseService#getInstance()
-    private DatabaseService() {
+    public DatabaseService() {
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference();
     }
@@ -94,8 +95,8 @@ public class DatabaseService {
             } else {
                 if (callback == null) return;
                 callback.onCompleted(null);
-        }
-    });
+            }
+        });
     }
 
     /// remove data from the database at a specific path
@@ -110,8 +111,8 @@ public class DatabaseService {
             } else {
                 if (callback == null) return;
                 callback.onCompleted(null);
-        }
-    });
+            }
+        });
     }
 
     /// read data from the database at a specific path
@@ -216,32 +217,46 @@ public class DatabaseService {
 
     // region User Section
 
-    /// generate a new id for a new user in the database
-    /// @return a new id for the user
-    /// @see #generateNewId(String)
-    /// @see User
-    public String generateUserId() {
-        return generateNewId(USERS_PATH);
-    }
+
+
 
     /// create a new user in the database
-    /// @param user the user object to create
+    /// @param user the user object to create (without the id, null)
     /// @param callback the callback to call when the operation is completed
-    ///              the callback will receive void
+    ///              the callback will receive new user id
     ///            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see User
-    public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        writeData(USERS_PATH + "/" + user.getUserId(), user, callback);
+    public void createNewUser(@NotNull final User user,
+                              @Nullable final DatabaseCallback<String> callback) {
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        mAuth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("TAG", "createUserWithEmail:success");
+                        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        user.setUserId(uid);
+                        writeData(USERS_PATH + "/" + uid, user, new DatabaseCallback<Void>() {
+                            @Override
+                            public void onCompleted(Void v) {
+                                if (callback != null) callback.onCompleted(uid);
+                            }
+
+                            @Override
+                            public void onFailed(Exception e) {
+                                if (callback != null) callback.onFailed(e);
+                            }
+                        });
+                    } else {
+                        Log.w("TAG", "createUserWithEmail:failure", task.getException());
+                        if (callback != null)
+                            callback.onFailed(task.getException());
+                    }
+                });
     }
 
-    /// get a user from the database
-    /// @param uid the id of the user to get
-    /// @param callback the callback to call when the operation is completed
-    ///               the callback will receive the user object
-    ///             if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see User
+
+
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
         getData(USERS_PATH + "/" + uid, User.class, callback);
     }
@@ -274,28 +289,28 @@ public class DatabaseService {
     /// @see User
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {
         readData(USERS_PATH).orderByChild("email").equalTo(email).get()
-            .addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                    Log.e(TAG, "Error getting data", task.getException());
-                    callback.onFailed(task.getException());
-                    return;
-                }
-                if (task.getResult().getChildrenCount() == 0) {
-                    callback.onFailed(new Exception("User not found"));
-                    return;
-                }
-                for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
-                    User user = dataSnapshot.getValue(User.class);
-                    if (user == null || !Objects.equals(user.getPassword(), password)) {
-                        callback.onFailed(new Exception("Invalid email or password"));
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Error getting data", task.getException());
+                        callback.onFailed(task.getException());
                         return;
                     }
+                    if (task.getResult().getChildrenCount() == 0) {
+                        callback.onFailed(new Exception("User not found"));
+                        return;
+                    }
+                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                        User user = dataSnapshot.getValue(User.class);
+                        if (user == null || !Objects.equals(user.getPassword(), password)) {
+                            callback.onFailed(new Exception("Invalid email or password"));
+                            return;
+                        }
 
-                    callback.onCompleted(user);
-                    return;
+                        callback.onCompleted(user);
+                        return;
 
-                }
-            });
+                    }
+                });
     }
 
     /// check if an email already exists in the database
@@ -331,6 +346,7 @@ public class DatabaseService {
             }
         });
     }
+
 
 
     // endregion User Section

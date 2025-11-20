@@ -1,25 +1,17 @@
 package com.example.projectx;
 
-import android.graphics.Color;
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.activity.EdgeToEdge;
 
-import org.json.JSONObject;
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+     Button signup, newacc, odot;
 
-public class MainActivity extends AppCompatActivity {
 
 
     @Override
@@ -29,5 +21,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
+        signup = findViewById(R.id.signup);
+        newacc = findViewById(R.id.newacc);
+        odot = findViewById(R.id.odot);
+
+
+        signup.setOnClickListener(this);
+        newacc.setOnClickListener(this);
+        odot.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+
+        if (id == R.id.signup || id == R.id.newacc) {
+
+            Intent intent = new Intent(MainActivity.this, register.class);
+            startActivity(intent);
+        } else if (id == R.id.odot) {
+
+            Intent intent = new Intent(MainActivity.this, Odotp.class);
+            startActivity(intent);
+        }
     }
 }
