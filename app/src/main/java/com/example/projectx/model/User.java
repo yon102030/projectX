@@ -14,6 +14,9 @@ public class User {
     // קונסטרקטור ריק חובה ל-Firebase
 
 
+    public User() {
+    }
+
     public User(String userId, String fName, String lName, String phone, String email, String password, boolean isAdmin) {
         this.userId = userId;
         this.fName = fName;
