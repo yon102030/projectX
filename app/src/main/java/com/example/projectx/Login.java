@@ -42,7 +42,6 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             return insets;
         });
 
-        // Init Firebase and DatabaseService
         databaseService = DatabaseService.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
@@ -91,19 +90,25 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Get current user's UID
                         String uid = mAuth.getCurrentUser().getUid();
 
-                        // Retrieve full user object from database
                         databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
                             @Override
                             public void onCompleted(User user) {
                                 Log.d(TAG, "Login success, user: " + user.getUserId());
 
-                                Intent BuildOIntent = new Intent(Login.this, BuildO.class);
-                                BuildOIntent.putExtra("USER_ID", user.getUserId());
-                                BuildOIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(BuildOIntent);
+                                if (user.isAdmin()) {
+                                    // כניסה לדף מנהלים
+                                    Intent adminIntent = new Intent(Login.this, Adminpage.class);
+                                    adminIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(adminIntent);
+                                } else {
+                                    // כניסה לדף משתמש רגיל
+                                    Intent userpageIntent = new Intent(Login.this, userpage.class);
+                                    userpageIntent.putExtra("USER_ID", user.getUserId());
+                                    userpageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    startActivity(userpageIntent);
+                                }
                             }
 
                             @Override
@@ -118,7 +123,5 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                         Log.e(TAG, "Login failed", task.getException());
                     }
                 });
-
-
     }
 }

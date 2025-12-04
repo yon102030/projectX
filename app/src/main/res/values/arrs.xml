@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="typeArr">
+
+        <item>חולצה קצרה</item>
+        <item>חולצה ארוכה</item>
+        <item>גופייה</item>
+        <item>סוודר</item>
+        <item>קפוצון</item>
+        <item>זקט</item>
+        <item>מעיל</item>
+        <item>מכנסיים ארוכים</item>
+        <item>מכנסיים קצרים</item>
+        <item>גינס</item>
+        <item>חצאית</item>
+        <item>שמלה</item>
+        <item>טייטס</item>
+        <item>טרנינג</item>
+        <item>חליפת ספורט</item>
+        <item>פיגמה</item>
+        <item>בגד ים</item>
+        <item>חזייה</item>
+        <item>תחתונים</item>
+        <item>גרביים</item>
+        <item>כובע</item>
+        <item>צעיף</item>
+        <item>כפפות</item>
+        <item>חגורה</item>
+        <item>ווסט</item>
+        <item>עליונית</item>
+        <item>קרדיגן</item>
+        <item>סרבל</item>
+        <item>חולצת פולו</item>
+        <item>טוניקה</item>
+    </string-array>
+
+    <string-array name="colorArr">
+
+        <item>שחור</item>
+        <item>לבן</item>
+        <item>אפור</item>
+        <item>כחול</item>
+        <item>כחול כהה</item>
+        <item>אדום</item>
+        <item>ירוק</item>
+        <item>חום</item>
+        <item>בז</item>
+        <item>צהוב</item>
+        <item>כתום</item>
+        <item>סגול</item>
+        <item>ורוד</item>
+        <item>טורקיז</item>
+        <item>זית</item>
+    </string-array>
+
+
+    <string-array name="seasonArr">
+
+        <item>אביב</item>
+        <item>קיץ</item>
+        <item>סתיו</item>
+        <item>חורף</item>
+    </string-array>
+
+
+</resources>
