@@ -17,7 +17,7 @@
         android:clickable="false"
         android:focusable="false"
         android:scaleType="centerCrop"
-        android:src="@drawable/back2"
+        android:src="@drawable/back3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -11,7 +11,7 @@ public class User {
     String password;
     boolean isAdmin;
 
-    // קונסטרקטור ריק חובה ל-Firebase
+
 
 
     public User() {

@@ -142,7 +142,6 @@ public class DatabaseService {
             callback.onCompleted(data);
         });
     }
-
     /// get a list of data from the database at a specific path
     /// @param path the path to get the data from
     /// @param clazz the class of the objects to return

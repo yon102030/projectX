@@ -98,12 +98,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                                 Log.d(TAG, "Login success, user: " + user.getUserId());
 
                                 if (user.isAdmin()) {
-                                    // כניסה לדף מנהלים
+
                                     Intent adminIntent = new Intent(Login.this, Adminpage.class);
                                     adminIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     startActivity(adminIntent);
                                 } else {
-                                    // כניסה לדף משתמש רגיל
+
                                     Intent userpageIntent = new Intent(Login.this, userpage.class);
                                     userpageIntent.putExtra("USER_ID", user.getUserId());
                                     userpageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
