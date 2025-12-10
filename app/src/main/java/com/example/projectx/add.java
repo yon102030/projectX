@@ -30,7 +30,6 @@ public class add extends AppCompatActivity {
     private ImageView itemImage;
     private Uri imageUri;
 
-
     private ActivityResultLauncher<Intent> galleryLauncher;
     private ActivityResultLauncher<Intent> cameraLauncher;
 
@@ -81,8 +80,20 @@ public class add extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         imageUri = result.getData().getData();
+
+                        // שמירת הרשאה לקרוא את הקובץ
                         try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                            getContentResolver().takePersistableUriPermission(
+                                    imageUri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            );
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(
+                                    this.getContentResolver(), imageUri);
                             itemImage.setImageBitmap(bitmap);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -99,9 +110,11 @@ public class add extends AppCompatActivity {
                     }
                 });
 
-        // כפתור גלריה
+        // כפתור גלריה — מתוקן לפי בקשתך
         buttonChooseGallery.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("image/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
             galleryLauncher.launch(intent);
         });
 
@@ -120,9 +133,9 @@ public class add extends AppCompatActivity {
             int selectedId = radioFavorite.getCheckedRadioButtonId();
             boolean isFavorite = selectedId == R.id.radio_yes;
 
-            // ניתן להוסיף כאן שמירת פריט בבסיס נתונים או העברה לעמוד אחר
             String message = "סוג: " + type + "\nצבע: " + color + "\nעונה: " + season + "\nמועדף: " + isFavorite
                     + "\nתמונה: " + (imageUri != null ? imageUri.toString() : "לא הוזנה");
+
             Toast.makeText(add.this, message, Toast.LENGTH_LONG).show();
         });
     }
