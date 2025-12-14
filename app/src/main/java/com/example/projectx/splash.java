@@ -2,35 +2,54 @@ package com.example.projectx;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.widget.ImageView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class splash extends AppCompatActivity {
+
+    ImageView logo;
+    Handler handler = new Handler();
+
+    // 👈 כאן מוסיפים את כל התמונות שיתחלפו
+    int[] images = {
+            R.drawable.blacktshirt,
+            R.drawable.blackzarajacket,
+            R.drawable.jordan,
+            R.drawable.brownzarajeans,
+            R.drawable.grayzarajeans
+
+    };
+
+    int index = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        Thread mSplashThread = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    synchronized(this) {
-                        wait(3000);
-                    }
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
+        logo = findViewById(R.id.logo);
 
-                finish();
+        // תמונה ראשונה
+        logo.setImageResource(images[0]);
 
-                Intent intent = new Intent(splash.this, MainActivity.class);
-                startActivity(intent);
-            }
-        };
+        // החלפת תמונה כל 800ms
+        handler.postDelayed(changeImage, 500);
 
-        mSplashThread.start();
+        // מעבר למסך הראשי אחרי 3 שניות
+        handler.postDelayed(() -> {
+            startActivity(new Intent(splash.this, MainActivity.class));
+            finish();
+        }, 3000);
     }
 
-
+    Runnable changeImage = new Runnable() {
+        @Override
+        public void run() {
+            index = (index + 1) % images.length;
+            logo.setImageResource(images[index]);
+            handler.postDelayed(this, 800);
+        }
+    };
 }

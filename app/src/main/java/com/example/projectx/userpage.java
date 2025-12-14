@@ -3,6 +3,7 @@ package com.example.projectx;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,7 +11,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class userpage extends AppCompatActivity {
+
+    private TextView tvHelloUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,13 +29,31 @@ public class userpage extends AppCompatActivity {
             return insets;
         });
 
+        tvHelloUser = findViewById(R.id.tvHelloUser);
 
-        Button button = findViewById(R.id.button);
+        // קבלת השם מה-Intent
+        String userName = getIntent().getStringExtra("USER_NAME");
+        if (userName != null && !userName.isEmpty()) {
+            tvHelloUser.setText("שלום " + userName);
+        } else {
+            tvHelloUser.setText("שלום משתמש");
+        }
 
-        button.setOnClickListener(v -> {
+        Button buttonAdd = findViewById(R.id.button);
+        buttonAdd.setOnClickListener(v -> {
             Intent intent = new Intent(userpage.this, add.class);
             startActivity(intent);
         });
 
+        Button buttonLogout = findViewById(R.id.buttonLogout);
+        buttonLogout.setOnClickListener(v -> {
+            // התנתקות
+            FirebaseAuth.getInstance().signOut();
+
+            // מעבר ל-MainActivity וניקוי ה-back stack
+            Intent intent = new Intent(userpage.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
     }
 }

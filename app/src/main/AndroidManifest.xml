@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectX">
         <activity
+            android:name=".Userlist"
+            android:exported="false" />
+        <activity
             android:name=".add"
             android:exported="false" />
         <activity

@@ -35,7 +35,6 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login2);
 
-        // Handle system bars padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -65,21 +64,18 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             loginUser(email, password);
 
         } else if (v.getId() == tvRegister.getId()) {
-            Intent registerIntent = new Intent(Login.this, register.class);
-            startActivity(registerIntent);
+            startActivity(new Intent(Login.this, register.class));
         }
     }
 
     private boolean checkInput(String email, String password) {
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.setError("כתובת אימייל לא תקינה");
-            etEmail.requestFocus();
             return false;
         }
 
         if (password.isEmpty() || password.length() < 6) {
             etPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
-            etPassword.requestFocus();
             return false;
         }
 
@@ -95,32 +91,28 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                         databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
                             @Override
                             public void onCompleted(User user) {
-                                Log.d(TAG, "Login success, user: " + user.getUserId());
+                                Log.d(TAG, "Login success: " + user.getUserId());
 
+                                Intent intent;
                                 if (user.isAdmin()) {
-
-                                    Intent adminIntent = new Intent(Login.this, Adminpage.class);
-                                    adminIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    startActivity(adminIntent);
+                                    intent = new Intent(Login.this, Adminpage.class);
                                 } else {
-
-                                    Intent userpageIntent = new Intent(Login.this, userpage.class);
-                                    userpageIntent.putExtra("USER_ID", user.getUserId());
-                                    userpageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    startActivity(userpageIntent);
+                                    intent = new Intent(Login.this, userpage.class);
                                 }
+
+                                intent.putExtra("USER_NAME", user.getfName());
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
                             }
 
                             @Override
                             public void onFailed(Exception e) {
-                                Log.e(TAG, "Failed to get user data", e);
+                                Log.e(TAG, "Failed to get user", e);
                             }
                         });
 
                     } else {
                         etPassword.setError("אימייל או סיסמה שגויים");
-                        etPassword.requestFocus();
-                        Log.e(TAG, "Login failed", task.getException());
                     }
                 });
     }
