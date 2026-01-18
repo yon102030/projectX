@@ -1,8 +1,10 @@
 package com.example.projectx;
 
 import android.os.Bundle;
+import android.widget.ListView;
 import android.widget.TextView;
-
+import java.util.ArrayList;
+import android.widget.ArrayAdapter;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -16,7 +18,7 @@ import java.util.List;
 
 public class Userlist extends AppCompatActivity {
 
-    private TextView tvUsers;
+    private ListView lvUsers;
     private DatabaseService databaseService;
 
     @Override
@@ -31,28 +33,46 @@ public class Userlist extends AppCompatActivity {
             return insets;
         });
 
-        tvUsers = findViewById(R.id.tvUsers);
+        lvUsers = findViewById(R.id.lvUsers);
         databaseService = DatabaseService.getInstance();
 
         databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
             public void onCompleted(List<User> users) {
-                StringBuilder sb = new StringBuilder();
+
+                ArrayList<String> userList = new ArrayList<>();
+
                 for (User u : users) {
-                    sb.append(u.getfName())
-                            .append(" ")
-                            .append(u.getlName())
-                            .append(" - ")
-                            .append(u.getEmail())
-                            .append("\n");
+                    userList.add(
+                            u.getfName() + " " +
+                                    u.getlName() + " - " +
+                                    u.getEmail()
+                    );
                 }
-                tvUsers.setText(sb.toString());
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        Userlist.this,
+                        android.R.layout.simple_list_item_1,
+                        userList
+                );
+
+                lvUsers.setAdapter(adapter);
             }
 
             @Override
             public void onFailed(Exception e) {
-                tvUsers.setText("Failed to load users");
+                ArrayList<String> error = new ArrayList<>();
+                error.add("Failed to load users");
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        Userlist.this,
+                        android.R.layout.simple_list_item_1,
+                        error
+                );
+
+                lvUsers.setAdapter(adapter);
             }
         });
     }
 }
+

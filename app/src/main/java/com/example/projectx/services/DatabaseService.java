@@ -23,54 +23,32 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-
 /// a service to interact with the Firebase Realtime Database.
 /// this class is a singleton, use getInstance() to get an instance of this class
 /// @see #getInstance()
 /// @see FirebaseDatabase
 public class DatabaseService {
 
-    /// tag for logging
-    /// @see Log
     private static final String TAG = "DatabaseService";
 
-    /// paths for different data types in the database
-    /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users",
             CLOTHES_PATH = "clothe",
             OUTFITS_PATH = "outfit";
 
-    /// callback interface for database operations
-    /// @param <T> the type of the object to return
-    /// @see DatabaseCallback#onCompleted(Object)
-    /// @see DatabaseCallback#onFailed(Exception)
     public interface DatabaseCallback<T> {
-        /// called when the operation is completed successfully
-        public void onCompleted(T object);
-
-        /// called when the operation fails with an exception
-        public void onFailed(Exception e);
+        void onCompleted(T object);
+        void onFailed(Exception e);
     }
 
-    /// the instance of this class
-    /// @see #getInstance()
     private static DatabaseService instance;
 
-    /// the reference to the database
-    /// @see DatabaseReference
-    /// @see FirebaseDatabase#getReference()
     private final DatabaseReference databaseReference;
 
-    /// use getInstance() to get an instance of this class
-    /// @see DatabaseService#getInstance()
     public DatabaseService() {
         FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
         databaseReference = firebaseDatabase.getReference();
     }
 
-    /// get an instance of this class
-    /// @return an instance of this class
-    /// @see DatabaseService
     public static DatabaseService getInstance() {
         if (instance == null) {
             instance = new DatabaseService();
@@ -78,59 +56,30 @@ public class DatabaseService {
         return instance;
     }
 
-
-    // region private generic methods
-    // to write and read data from the database
-
-    /// write data to the database at a specific path
-    /// @param path the path to write the data to
-    /// @param data the data to write (can be any object, but must be serializable, i.e. must have a default constructor and all fields must have getters and setters)
-    /// @param callback the callback to call when the operation is completed
-    /// @see DatabaseCallback
     private void writeData(@NotNull final String path, @NotNull final Object data, final @Nullable DatabaseCallback<Void> callback) {
         readData(path).setValue(data, (error, ref) -> {
             if (error != null) {
-                if (callback == null) return;
-                callback.onFailed(error.toException());
+                if (callback != null) callback.onFailed(error.toException());
             } else {
-                if (callback == null) return;
-                callback.onCompleted(null);
+                if (callback != null) callback.onCompleted(null);
             }
         });
     }
 
-    /// remove data from the database at a specific path
-    /// @param path the path to remove the data from
-    /// @param callback the callback to call when the operation is completed
-    /// @see DatabaseCallback
     private void deleteData(@NotNull final String path, @Nullable final DatabaseCallback<Void> callback) {
         readData(path).removeValue((error, ref) -> {
             if (error != null) {
-                if (callback == null) return;
-                callback.onFailed(error.toException());
+                if (callback != null) callback.onFailed(error.toException());
             } else {
-                if (callback == null) return;
-                callback.onCompleted(null);
+                if (callback != null) callback.onCompleted(null);
             }
         });
     }
-
-    /// read data from the database at a specific path
-    /// @param path the path to read the data from
-    /// @return a DatabaseReference object to read the data from
-    /// @see DatabaseReference
 
     private DatabaseReference readData(@NotNull final String path) {
         return databaseReference.child(path);
     }
 
-
-    /// get data from the database at a specific path
-    /// @param path the path to get the data from
-    /// @param clazz the class of the object to return
-    /// @param callback the callback to call when the operation is completed
-    /// @see DatabaseCallback
-    /// @see Class
     private <T> void getData(@NotNull final String path, @NotNull final Class<T> clazz, @NotNull final DatabaseCallback<T> callback) {
         readData(path).get().addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
@@ -142,10 +91,7 @@ public class DatabaseService {
             callback.onCompleted(data);
         });
     }
-    /// get a list of data from the database at a specific path
-    /// @param path the path to get the data from
-    /// @param clazz the class of the objects to return
-    /// @param callback the callback to call when the operation is completed
+
     private <T> void getDataList(@NotNull final String path, @NotNull final Class<T> clazz, @NotNull final DatabaseCallback<List<T>> callback) {
         readData(path).get().addOnCompleteListener(task -> {
             if (!task.isSuccessful()) {
@@ -158,40 +104,21 @@ public class DatabaseService {
                 T t = dataSnapshot.getValue(clazz);
                 tList.add(t);
             });
-
             callback.onCompleted(tList);
         });
     }
-
-    /// generate a new id for a new object in the database
-    /// @param path the path to generate the id for
-    /// @return a new id for the object
-    /// @see String
-    /// @see DatabaseReference#push()
 
     private String generateNewId(@NotNull final String path) {
         return databaseReference.child(path).push().getKey();
     }
 
-
-    /// run a transaction on the data at a specific path </br>
-    /// good for incrementing a value or modifying an object in the database
-    /// @param path the path to run the transaction on
-    /// @param clazz the class of the object to return
-    /// @param function the function to apply to the current value of the data
-    /// @param callback the callback to call when the operation is completed
-    /// @see DatabaseReference#runTransaction(Transaction.Handler)
     private <T> void runTransaction(@NotNull final String path, @NotNull final Class<T> clazz, @NotNull UnaryOperator<T> function, @NotNull final DatabaseCallback<T> callback) {
         readData(path).runTransaction(new Transaction.Handler() {
             @NonNull
             @Override
             public Transaction.Result doTransaction(@NonNull MutableData currentData) {
                 T currentValue = currentData.getValue(clazz);
-                if (currentValue == null) {
-                    currentValue = function.apply(null);
-                } else {
-                    currentValue = function.apply(currentValue);
-                }
+                currentValue = (currentValue == null) ? function.apply(null) : function.apply(currentValue);
                 currentData.setValue(currentValue);
                 return Transaction.success(currentData);
             }
@@ -207,32 +134,15 @@ public class DatabaseService {
                 callback.onCompleted(result);
             }
         });
-
     }
 
-    // endregion of private methods for reading and writing data
-
-    // public methods to interact with the database
-
     // region User Section
-
-
-
-
-    /// create a new user in the database
-    /// @param user the user object to create (without the id, null)
-    /// @param callback the callback to call when the operation is completed
-    ///              the callback will receive new user id
-    ///            if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see User
-    public void createNewUser(@NotNull final User user,
-                              @Nullable final DatabaseCallback<String> callback) {
+    public void createNewUser(@NotNull final User user, @Nullable final DatabaseCallback<String> callback) {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         mAuth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d("TAG", "createUserWithEmail:success");
+                        Log.d(TAG, "createUserWithEmail:success");
                         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         user.setUserId(uid);
                         writeData(USERS_PATH + "/" + uid, user, new DatabaseCallback<Void>() {
@@ -240,52 +150,30 @@ public class DatabaseService {
                             public void onCompleted(Void v) {
                                 if (callback != null) callback.onCompleted(uid);
                             }
-
                             @Override
                             public void onFailed(Exception e) {
                                 if (callback != null) callback.onFailed(e);
                             }
                         });
                     } else {
-                        Log.w("TAG", "createUserWithEmail:failure", task.getException());
-                        if (callback != null)
-                            callback.onFailed(task.getException());
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        if (callback != null) callback.onFailed(task.getException());
                     }
                 });
     }
-
-
 
     public void getUser(@NotNull final String uid, @NotNull final DatabaseCallback<User> callback) {
         getData(USERS_PATH + "/" + uid, User.class, callback);
     }
 
-    /// get all the users from the database
-    /// @param callback the callback to call when the operation is completed
-    ///              the callback will receive a list of user objects
-    ///            if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see List
-    /// @see User
     public void getUserList(@NotNull final DatabaseCallback<List<User>> callback) {
         getDataList(USERS_PATH, User.class, callback);
     }
 
-    /// delete a user from the database
-    /// @param uid the user id to delete
-    /// @param callback the callback to call when the operation is completed
     public void deleteUser(@NotNull final String uid, @Nullable final DatabaseCallback<Void> callback) {
         deleteData(USERS_PATH + "/" + uid, callback);
     }
 
-    /// get a user by email and password
-    /// @param email the email of the user
-    /// @param password the password of the user
-    /// @param callback the callback to call when the operation is completed
-    ///            the callback will receive the user object
-    ///          if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see User
     public void getUserByEmailAndPassword(@NotNull final String email, @NotNull final String password, @NotNull final DatabaseCallback<User> callback) {
         readData(USERS_PATH).orderByChild("email").equalTo(email).get()
                 .addOnCompleteListener(task -> {
@@ -304,17 +192,12 @@ public class DatabaseService {
                             callback.onFailed(new Exception("Invalid email or password"));
                             return;
                         }
-
                         callback.onCompleted(user);
                         return;
-
                     }
                 });
     }
 
-    /// check if an email already exists in the database
-    /// @param email the email to check
-    /// @param callback the callback to call when the operation is completed
     public void checkIfEmailExists(@NotNull final String email, @NotNull final DatabaseCallback<Boolean> callback) {
         readData(USERS_PATH).orderByChild("email").equalTo(email).get()
                 .addOnCompleteListener(task -> {
@@ -323,8 +206,7 @@ public class DatabaseService {
                         callback.onFailed(task.getException());
                         return;
                     }
-                    boolean exists = task.getResult().getChildrenCount() > 0;
-                    callback.onCompleted(exists);
+                    callback.onCompleted(task.getResult().getChildrenCount() > 0);
                 });
     }
 
@@ -332,117 +214,49 @@ public class DatabaseService {
         runTransaction(USERS_PATH + "/" + user.getUserId(), User.class, currentUser -> user, new DatabaseCallback<User>() {
             @Override
             public void onCompleted(User object) {
-                if (callback != null) {
-                    callback.onCompleted(null);
-                }
+                if (callback != null) callback.onCompleted(null);
             }
-
             @Override
             public void onFailed(Exception e) {
-                if (callback != null) {
-                    callback.onFailed(e);
-                }
+                if (callback != null) callback.onFailed(e);
             }
         });
     }
-
-
-
     // endregion User Section
 
     // region clothe section
-
-    /// create a new clothe in the database
-    /// @param clothe the clothe object to create
-    /// @param callback the callback to call when the operation is completed
-    ///              the callback will receive void
-    ///             if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see Clothe
     public void createNewClothe(@NotNull final Clothe clothe, @Nullable final DatabaseCallback<Void> callback) {
         writeData(CLOTHES_PATH + "/" + clothe.getItemId(), clothe, callback);
     }
 
-    /// get a clothe from the database
-    /// @param clotheId the id of the clothe to get
-    /// @param callback the callback to call when the operation is completed
-    ///               the callback will receive the clothe object
-    ///              if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see Clothe
     public void getClothe(@NotNull final String clotheId, @NotNull final DatabaseCallback<Clothe> callback) {
         getData(CLOTHES_PATH + "/" + clotheId, Clothe.class, callback);
     }
 
-    /// get all the clothes from the database
-    /// @param callback the callback to call when the operation is completed
-    ///              the callback will receive a list of clothe objects
-    ///            if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see List
-    /// @see Clothe
     public void getClotheList(@NotNull final DatabaseCallback<List<Clothe>> callback) {
         getDataList(CLOTHES_PATH, Clothe.class, callback);
     }
 
-    /// generate a new id for a new clothe in the database
-    /// @return a new id for the clothe
-    /// @see #generateNewId(String)
-    /// @see Clothe
     public String generateClotheId() {
         return generateNewId(CLOTHES_PATH);
     }
 
-    /// delete a clothe from the database
-    /// @param clotheId the id of the clothe to delete
-    /// @param callback the callback to call when the operation is completed
     public void deleteClothe(@NotNull final String clotheId, @Nullable final DatabaseCallback<Void> callback) {
         deleteData(CLOTHES_PATH + "/" + clotheId, callback);
     }
 
-    // endregion clothe section
-
-    // region outfit section
-
-    /// create a new outfit in the database
-    /// @param outfit the outfit object to create
-    /// @param callback the callback to call when the operation is completed
-    ///               the callback will receive void
-    ///              if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see Outfit
-    public void createNewOutfit(@NotNull final Outfit outfit, @Nullable final DatabaseCallback<Void> callback) {
-        writeData(OUTFITS_PATH + "/" + outfit.getOutfitId(), outfit, callback);
-    }
-
-    /// get a outfit from the database
-    /// @param outfitId the id of the outfit to get
-    /// @param callback the callback to call when the operation is completed
-    ///                the callback will receive the outfit object
-    ///               if the operation fails, the callback will receive an exception
-    /// @see DatabaseCallback
-    /// @see Outfit
-    public void getOutfit(@NotNull final String outfitId, @NotNull final DatabaseCallback<Outfit> callback) {
-        getData(OUTFITS_PATH + "/" + outfitId, Outfit.class, callback);
-    }
-
-    /// get all the outfits from the database
-    /// @param callback the callback to call when the operation is completed
-    ///               the callback will receive a list of outfit objects
-    ///
-    public void getOutfitList(@NotNull final DatabaseCallback<List<Outfit>> callback) {
-        getDataList(OUTFITS_PATH, Outfit.class, callback);
-    }
-
-    /// get all the outfits of a specific user from the database
-    /// @param uid the id of the user to get the outfits for
-    /// @param callback the callback to call when the operation is completed
-    public void getUserOutfitList(@NotNull String uid, @NotNull final DatabaseCallback<List<Outfit>> callback) {
-        getOutfitList(new DatabaseCallback<>() {
+    // **פונקציה חדשה לקבלת רשימת מזהי בגדים של משתמש**
+    public void getClothesIds(@NotNull final String userId, @NotNull final DatabaseCallback<List<String>> callback) {
+        getClotheList(new DatabaseCallback<List<Clothe>>() {
             @Override
-            public void onCompleted(List<Outfit> outfits) {
-                outfits.removeIf(outfit -> !Objects.equals(outfit.getOutfitId(), uid));
-                callback.onCompleted(outfits);
+            public void onCompleted(List<Clothe> clothes) {
+                List<String> ids = new ArrayList<>();
+                for (Clothe clothe : clothes) {
+                    if (Objects.equals(clothe.getItemId(), userId)) {
+                        ids.add(clothe.getItemId());
+                    }
+                }
+                callback.onCompleted(ids);
             }
 
             @Override
@@ -452,23 +266,41 @@ public class DatabaseService {
         });
     }
 
+    // endregion clothe section
 
-    /// generate a new id for a new outfit in the database
-    /// @return a new id for the outfit
-    /// @see #generateNewId(String)
-    /// @see Outfit
+    // region outfit section
+    public void createNewOutfit(@NotNull final Outfit outfit, @Nullable final DatabaseCallback<Void> callback) {
+        writeData(OUTFITS_PATH + "/" + outfit.getOutfitId(), outfit, callback);
+    }
+
+    public void getOutfit(@NotNull final String outfitId, @NotNull final DatabaseCallback<Outfit> callback) {
+        getData(OUTFITS_PATH + "/" + outfitId, Outfit.class, callback);
+    }
+
+    public void getOutfitList(@NotNull final DatabaseCallback<List<Outfit>> callback) {
+        getDataList(OUTFITS_PATH, Outfit.class, callback);
+    }
+
+    public void getUserOutfitList(@NotNull String uid, @NotNull final DatabaseCallback<List<Outfit>> callback) {
+        getOutfitList(new DatabaseCallback<>() {
+            @Override
+            public void onCompleted(List<Outfit> outfits) {
+                outfits.removeIf(outfit -> !Objects.equals(outfit.getOutfitId(), uid));
+                callback.onCompleted(outfits);
+            }
+            @Override
+            public void onFailed(Exception e) {
+                callback.onFailed(e);
+            }
+        });
+    }
+
     public String generateOutfitId() {
         return generateNewId(OUTFITS_PATH);
     }
 
-    /// delete a outfit from the database
-    /// @param outfitId the id of the outfit to delete
-    /// @param callback the callback to call when the operation is completed
     public void deleteOutfit(@NotNull final String outfitId, @Nullable final DatabaseCallback<Void> callback) {
         deleteData(OUTFITS_PATH + "/" + outfitId, callback);
     }
-
     // endregion outfit section
-
 }
-

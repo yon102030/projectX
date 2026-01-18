@@ -12,16 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectX">
         <activity
+            android:name=".item_clothe"
+            android:exported="false" />
+        <activity
+            android:name=".itemlist"
+            android:exported="false" />
+        <activity
             android:name=".Userlist"
             android:exported="false" />
         <activity
-            android:name=".add"
+            android:name=".AddClothe"
             android:exported="false" />
         <activity
             android:name=".userpage"
-            android:exported="false" />
-        <activity
-            android:name=".usetpage"
             android:exported="false" />
         <activity
             android:name=".Adminpage"

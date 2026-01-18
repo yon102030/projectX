@@ -41,7 +41,7 @@ public class userpage extends AppCompatActivity {
 
         Button buttonAdd = findViewById(R.id.button);
         buttonAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(userpage.this, add.class);
+            Intent intent = new Intent(userpage.this, AddClothe.class);
             startActivity(intent);
         });
 

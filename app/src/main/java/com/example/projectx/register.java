@@ -1,6 +1,8 @@
 package com.example.projectx;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +36,11 @@ public class register extends AppCompatActivity implements View.OnClickListener 
     private TextView tvLogin;
     DatabaseService databaseService;
 
+    public static final String MyPREFERENCES = "MyPrefs";
+
+    SharedPreferences sharedpreferences;
+    private String email,password;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +53,9 @@ public class register extends AppCompatActivity implements View.OnClickListener 
             return insets;
         });
         databaseService=DatabaseService.getInstance();
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
 
         /// get the views
         etEmail = findViewById(R.id.Email);
@@ -67,8 +77,8 @@ public class register extends AppCompatActivity implements View.OnClickListener 
             Log.d(TAG, "onClick: Register button clicked");
 
             /// get the input from the user
-            String email = etEmail.getText().toString();
-            String password = etPassword.getText().toString();
+             email = etEmail.getText().toString();
+             password = etPassword.getText().toString();
             String fName = etFName.getText().toString();
             String lName = etLName.getText().toString();
             String phone = etPhone.getText().toString();
@@ -116,6 +126,13 @@ public class register extends AppCompatActivity implements View.OnClickListener 
                 Log.d(TAG, "createUserInDatabase: User created successfully");
                 /// save the user to shared preferences
                 user.setUserId(uid);
+
+
+
+                SharedPreferences.Editor editor = sharedpreferences.edit();
+                editor.putString("email", email);
+                editor.putString("password", password);
+                editor.apply();
                 Log.d(TAG, "createUserInDatabase: Redirecting to MainActivity");
                 /// Redirect to MainActivity and clear back stack to prevent user from going back to register screen
                 Intent mainIntent = new Intent(register.this, MainActivity.class);

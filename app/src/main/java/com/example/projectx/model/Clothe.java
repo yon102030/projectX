@@ -10,6 +10,8 @@ public class Clothe {
     private String season;
     private boolean isFavorite;
 
+    // 🔹 Constructor ריק - חובה ל-Firebase
+    public Clothe() { }
 
     public Clothe(String itemId, String name, String type, String color, String imageUrl, String season, boolean isFavorite) {
         this.itemId = itemId;
@@ -22,63 +24,27 @@ public class Clothe {
     }
 
     // --- Getters & Setters ---
-    public String getItemId() {
-        return itemId;
-    }
+    public String getItemId() { return itemId; }
+    public void setItemId(String itemId) { this.itemId = itemId; }
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 
-    public String getType() {
-        return type;
-    }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    public String getSeason() { return season; }
+    public void setSeason(String season) { this.season = season; }
 
-    public String getColor() {
-        return color;
-    }
+    public boolean isFavorite() { return isFavorite; }
+    public void setFavorite(boolean favorite) { isFavorite = favorite; }
 
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getSeason() {
-        return season;
-    }
-
-    public void setSeason(String season) {
-        this.season = season;
-    }
-
-    public boolean isFavorite() {
-        return isFavorite;
-    }
-
-    public void setFavorite(boolean favorite) {
-        isFavorite = favorite;
-    }
-
-    // --- toString() ---
     @Override
     public String toString() {
         return "Clothe{" +

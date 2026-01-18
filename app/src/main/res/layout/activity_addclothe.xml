@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".add">
+    tools:context=".AddClothe">
 
     <!-- רקע -->
     <ImageView
@@ -47,6 +47,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:entries="@array/typeArr"
         app:layout_constraintTop_toBottomOf="@id/title_add_item"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -61,6 +62,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:entries="@array/colorArr"
         app:layout_constraintTop_toBottomOf="@id/spinner_type"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -75,6 +77,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:entries="@array/seasonArr"
         app:layout_constraintTop_toBottomOf="@id/spinner_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

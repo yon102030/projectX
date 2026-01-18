@@ -1,6 +1,8 @@
 package com.example.projectx;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
@@ -29,6 +31,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
 
+    public static final String MyPREFERENCES = "MyPrefs";
+
+    SharedPreferences sharedpreferences;
+    private String email,password;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +49,9 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
             return insets;
         });
 
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+
+
         databaseService = DatabaseService.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
@@ -49,6 +60,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         btnLogin = findViewById(R.id.btnlogin);
         tvRegister = findViewById(R.id.registerpage);
 
+        email = sharedpreferences.getString("email", "");
+        password = sharedpreferences.getString("password", "");
+        etEmail.setText(email);
+        etPassword.setText(password);
+
+
         btnLogin.setOnClickListener(this);
         tvRegister.setOnClickListener(this);
     }
@@ -56,8 +73,8 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         if (v.getId() == btnLogin.getId()) {
-            String email = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
+             email = etEmail.getText().toString().trim();
+             password = etPassword.getText().toString().trim();
 
             if (!checkInput(email, password)) return;
 
@@ -92,6 +109,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
                             @Override
                             public void onCompleted(User user) {
                                 Log.d(TAG, "Login success: " + user.getUserId());
+
+                                SharedPreferences.Editor editor = sharedpreferences.edit();
+                                editor.putString("email", email);
+                                editor.putString("password", password);
+                                editor.apply();
+
 
                                 Intent intent;
                                 if (user.isAdmin()) {

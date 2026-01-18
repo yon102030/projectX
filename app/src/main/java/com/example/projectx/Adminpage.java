@@ -1,5 +1,6 @@
 package com.example.projectx;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -18,10 +19,11 @@ import com.google.firebase.auth.FirebaseAuth;
 public class Adminpage extends AppCompatActivity {
 
     private TextView tvGreeting;
-    private Button btnLogout, btnUserList;
+    private Button btnLogout, btnUserList, itemlist;
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +42,7 @@ public class Adminpage extends AppCompatActivity {
         tvGreeting = findViewById(R.id.tvGreeting);
         btnLogout = findViewById(R.id.btnLogout);
         btnUserList = findViewById(R.id.btnUserList);
+        itemlist=findViewById(R.id.itemlist);
 
         // קבלת שם המנהל מה-Intent
         String adminName = getIntent().getStringExtra("USER_NAME");
@@ -54,6 +57,10 @@ public class Adminpage extends AppCompatActivity {
 
         btnUserList.setOnClickListener(v -> {
             Intent intent = new Intent(Adminpage.this, Userlist.class);
+            startActivity(intent);
+        });
+        itemlist.setOnClickListener(v -> {
+            Intent intent = new Intent(Adminpage.this, itemlist.class);
             startActivity(intent);
         });
     }
