@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class Adminpage extends AppCompatActivity {
 
     private TextView tvGreeting;
-    private Button btnLogout, btnUserList, itemlist;
+    private Button btnLogout, btnUserList, itemlist, additem;
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
 
@@ -43,6 +43,7 @@ public class Adminpage extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
         btnUserList = findViewById(R.id.btnUserList);
         itemlist=findViewById(R.id.itemlist);
+        additem=findViewById(R.id.additem);
 
         // קבלת שם המנהל מה-Intent
         String adminName = getIntent().getStringExtra("USER_NAME");
@@ -63,5 +64,10 @@ public class Adminpage extends AppCompatActivity {
             Intent intent = new Intent(Adminpage.this, itemlist.class);
             startActivity(intent);
         });
+        additem.setOnClickListener(v -> {
+            Intent intent = new Intent(Adminpage.this, AddClothe.class);
+            startActivity(intent);
+        });
+
     }
 }

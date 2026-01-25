@@ -18,13 +18,10 @@
         <item>טייטס</item>
         <item>טרנינג</item>
         <item>חליפת ספורט</item>
-        <item>חגורה</item>
         <item>ווסט</item>
         <item>עליונית</item>
-        <item>קרדיגן</item>
         <item>סרבל</item>
         <item>חולצת פולו</item>
-        <item>טוניקה</item>
     </string-array>
 
     <string-array name="colorArr">
@@ -53,6 +50,7 @@
         <item>קיץ</item>
         <item>סתיו</item>
         <item>חורף</item>
+        <item>כל העונות</item>
     </string-array>
 
 

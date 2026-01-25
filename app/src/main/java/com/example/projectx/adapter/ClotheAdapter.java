@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.projectx.R;
@@ -20,23 +21,35 @@ import com.example.projectx.util.ImageUtil;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheViewHolder> {
 
-    private Context context;
+
+
+
+    public interface OnClotheClickListener {
+        void onClotheClick(Clothe user);
+        void onLongClotheClick(Clothe user);
+    }
+
+
     private List<Clothe> clotheList;
+    private final OnClotheClickListener onClotcheClickListener;
+
 
     // קונסטרקטור עם Context ורשימת פריטים
-    public ClotheAdapter(Context context, List<Clothe> clotheList) {
-        this.context = context;
+    public ClotheAdapter( List<Clothe> clotheList, OnClotheClickListener onClotcheClickListener) {
+
         this.clotheList = clotheList;
+        this.onClotcheClickListener = onClotcheClickListener;
     }
 
     @NonNull
     @Override
     public ClotheViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.activity_item_clothe, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_item_clothe, parent, false);
         return new ClotheViewHolder(view);
     }
 
@@ -58,6 +71,22 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
 
         // הצגת כוכב אם הפריט מועדף
       //  holder.imageFavorite.setVisibility(clothe.isFavorite() ? View.VISIBLE : View.GONE);
+
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onClotcheClickListener != null) {
+                onClotcheClickListener.onClotheClick(clothe);
+            }
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if ( onClotcheClickListener!= null) {
+                onClotcheClickListener.onLongClotheClick(clothe);
+            }
+            return true;
+        });
+
+
     }
 
     @Override
