@@ -76,9 +76,10 @@ android:textColor="#01579B"
 
         <TextView
             android:id="@+id/tvDate"
-            android:layout_width="wrap_content"
+            android:layout_width="334dp"
             android:layout_height="wrap_content"
             android:gravity="start"
+
             android:text="תאריך"
             android:textColor="#012F5B"
             android:textSize="20sp"
@@ -103,7 +104,7 @@ android:textColor="#01579B"
 
         <TextView
             android:id="@+id/tvForecast"
-            android:layout_width="wrap_content"
+            android:layout_width="334dp"
             android:layout_height="wrap_content"
             android:gravity="start"
             android:text="תחזית"
@@ -127,17 +128,69 @@ android:background="#4FC3F7"
     app:layout_constraintEnd_toEndOf="parent"
     android:elevation="4dp">
 
-<TextView
-android:id="@+id/tvTemperature"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="מעלות"
-android:textColor="#0D47A1"
-android:textSize="24sp"
-android:textStyle="bold"
-android:gravity="start" />
+        <TextView
+            android:id="@+id/tvTemperature"
+            android:layout_width="333dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="מעלות"
+            android:textColor="#0D47A1"
+            android:textSize="24sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/genderBox"
+        android:layout_width="355dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:background="#29B6F6"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tempBox">
+
+
+        <RadioGroup
+            android:id="@+id/radioGender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioMale"
+                android:layout_width="149dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="32dp"
+                android:buttonTint="#01579B"
+                android:text="גבר"
+                android:textColor="#01579B"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/radioFemale"
+                android:layout_width="141dp"
+                android:layout_height="match_parent"
+                android:buttonTint="#01579B"
+                android:text="אישה"
+                android:textColor="#01579B"
+                android:textSize="18sp" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonuser2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Button"
+        tools:layout_editor_absoluteX="85dp"
+        tools:layout_editor_absoluteY="524dp" />
     <!-- כפתור התנתקות -->
 <Button
 android:id="@+id/buttonLogout"
@@ -153,4 +206,6 @@ android:backgroundTint="#0277BD"
     app:layout_constraintEnd_toEndOf="parent"
     android:layout_marginBottom="32dp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

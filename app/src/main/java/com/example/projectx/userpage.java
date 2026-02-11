@@ -1,5 +1,6 @@
 package com.example.projectx;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -35,9 +36,11 @@ public class userpage extends AppCompatActivity {
     private TextView tvHelloUser;
     private TextView tvDate, tvForecast, tvTemperature;
     private Spinner spinnerCity;
+    private Button Btnuser2;
 
     private Map<String, String> cityMap;  // מיפוי עברית -> אנגלית
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +58,7 @@ public class userpage extends AppCompatActivity {
         tvForecast = findViewById(R.id.tvForecast);
         tvTemperature = findViewById(R.id.tvTemperature);
         spinnerCity = findViewById(R.id.spinnerCity);
-
+        Btnuser2=findViewById(R.id.buttonuser2);
         // קבלת השם מה-Intent
         String userName = getIntent().getStringExtra("USER_NAME");
         if (userName != null && !userName.isEmpty()) {
@@ -121,6 +124,11 @@ public class userpage extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
+        Btnuser2.setOnClickListener(v -> {
+            Intent intent = new Intent(userpage.this, user2Activity.class);
+            startActivity(intent);
+        });
+
     }
 
     // 🔹 פונקציה למזג אוויר לפי עיר באנגלית
