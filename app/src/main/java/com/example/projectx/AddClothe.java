@@ -7,8 +7,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -24,7 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class AddClothe extends AppCompatActivity {
 
     private Spinner spinnerType, spinnerColor, spinnerSeason;
-    private LinearLayout layoutFavorite; // LinearLayout במקום RadioGroup
+    private RadioGroup radioGenderGroup;
     private ImageView itemImage;
     private Button btnGallery, btnCamera, btnAdd;
 
@@ -54,13 +53,19 @@ public class AddClothe extends AppCompatActivity {
                 });
 
         btnGallery.setOnClickListener(v -> imageChooser());
-
         btnCamera.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             cameraLauncher.launch(intent);
         });
-
         btnAdd.setOnClickListener(v -> addClothe());
+
+        // מלא את ה-spinner של העונות עם "All" בתחילת הרשימה
+        String[] seasons = {"All", "קיץ", "אביב", "סתיו", "חורף"};
+        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, seasons
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSeason.setAdapter(adapter);
     }
 
     private void initViews() {
@@ -68,7 +73,7 @@ public class AddClothe extends AppCompatActivity {
         spinnerColor = findViewById(R.id.spinner_color);
         spinnerSeason = findViewById(R.id.spinner_season);
 
-        layoutFavorite = findViewById(R.id.layout_favorite); // LinearLayout
+        radioGenderGroup = findViewById(R.id.radio_gender_group);
 
         itemImage = findViewById(R.id.item_image);
 
@@ -78,23 +83,17 @@ public class AddClothe extends AppCompatActivity {
     }
 
     private void addClothe() {
-
         String type = spinnerType.getSelectedItem().toString();
         String color = spinnerColor.getSelectedItem().toString();
         String season = spinnerSeason.getSelectedItem().toString();
 
-        // בדיקה ידנית של הרדיו בתוך ה-LinearLayout
-        boolean isFavorite = false;
-        for (int i = 0; i < layoutFavorite.getChildCount(); i++) {
-            if (layoutFavorite.getChildAt(i) instanceof RadioButton) {
-                RadioButton rb = (RadioButton) layoutFavorite.getChildAt(i);
-                if (rb.isChecked()) {
-                    // כאן אנחנו מגדירים לפי הטקסט
-                    isFavorite = rb.getText().toString().equals("גבר"); // או "מועדף" בהתאם למה שאתה רוצה
-                    break;
-                }
-            }
+        int selectedId = radioGenderGroup.getCheckedRadioButtonId();
+        if (selectedId == -1) {
+            Toast.makeText(this, "נא לבחור גבר או אישה", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        boolean isFavorite = selectedId == R.id.radio_male;
 
         if (itemImage.getDrawable() == null) {
             Toast.makeText(this, "נא לבחור תמונה", Toast.LENGTH_SHORT).show();
@@ -105,6 +104,7 @@ public class AddClothe extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String clotheId = databaseService.generateClotheId();
 
+        // יצירת אובייקט Clothe
         Clothe clothe = new Clothe(
                 clotheId,
                 userId,
@@ -129,7 +129,7 @@ public class AddClothe extends AppCompatActivity {
         });
     }
 
-    void imageChooser() {
+    private void imageChooser() {
         Intent i = new Intent();
         i.setType("image/*");
         i.setAction(Intent.ACTION_GET_CONTENT);
@@ -139,7 +139,6 @@ public class AddClothe extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (resultCode == RESULT_OK) {
             if (requestCode == SELECT_PICTURE) {
                 Uri selectedImageUri = data.getData();

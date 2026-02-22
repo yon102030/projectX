@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -33,12 +34,13 @@ import java.util.Map;
 
 public class userpage extends AppCompatActivity {
 
-    private TextView tvHelloUser;
-    private TextView tvDate, tvForecast, tvTemperature;
+    private TextView tvHelloUser, tvDate, tvForecast, tvTemperature;
     private Spinner spinnerCity;
-    private Button Btnuser2;
+    private Button Btnuser2, additem;
+    private RadioGroup radioGender;
 
-    private Map<String, String> cityMap;  // מיפוי עברית -> אנגלית
+    private Map<String, String> cityMap;
+    private boolean isMaleSelected = true; // ברירת מחדל
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -58,21 +60,27 @@ public class userpage extends AppCompatActivity {
         tvForecast = findViewById(R.id.tvForecast);
         tvTemperature = findViewById(R.id.tvTemperature);
         spinnerCity = findViewById(R.id.spinnerCity);
-        Btnuser2=findViewById(R.id.buttonuser2);
-        // קבלת השם מה-Intent
-        String userName = getIntent().getStringExtra("USER_NAME");
-        if (userName != null && !userName.isEmpty()) {
-            tvHelloUser.setText("שלום " + userName);
-        } else {
-            tvHelloUser.setText("שלום משתמש");
-        }
+        Btnuser2 = findViewById(R.id.buttonuser2);
+        radioGender = findViewById(R.id.radioGender);
+        additem=findViewById(R.id.additem);
 
-        // תאריך של היום
+        // תאריך
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         tvDate.setText("תאריך: " + sdf.format(new Date()));
 
-        // 🔹 רשימת ערים בעברית ומיפוי לאנגלית
-        // 🔹 רשימת ערים בעברית ומיפוי לאנגלית
+        // בחירת שם משתמש
+        String userName = getIntent().getStringExtra("USER_NAME");
+        tvHelloUser.setText((userName != null && !userName.isEmpty()) ? "שלום " + userName : "שלום משתמש");
+
+        // מאזין ל־RadioGroup
+        radioGender.setOnCheckedChangeListener((group, checkedId) -> isMaleSelected = (checkedId == R.id.radioMale));
+
+        additem.setOnClickListener(v -> {
+            Intent intent = new Intent(userpage.this, AddClothe.class);
+            startActivity(intent);
+        });
+
+        // רשימת ערים
         cityMap = new LinkedHashMap<>();
         cityMap.put("תל אביב", "Tel-Aviv");
         cityMap.put("ירושלים", "Jerusalem");
@@ -89,10 +97,11 @@ public class userpage extends AppCompatActivity {
         cityMap.put("מודיעין", "Modi'in");
         cityMap.put("הרצליה", "Herzliya");
         cityMap.put("אשדוד", "Ashdod");
+        cityMap.put("אילת", "Eilat");
+        cityMap.put("אורנג’סטאד", "Oranjestad"); // טמפרטורה כעת ~27°C
 
-// יוצרים רשימה עם הפריט הראשון "בחר עיר"
         ArrayList<String> cityList = new ArrayList<>();
-        cityList.add("בחר עיר"); // placeholder
+        cityList.add("בחר עיר");
         cityList.addAll(cityMap.keySet());
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -100,42 +109,47 @@ public class userpage extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCity.setAdapter(adapter);
 
-// מאזין לבחירת עיר
         spinnerCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if(position == 0) return; // אם בחרו "בחר עיר" לא עושים כלום
-
-                String selectedHebrewCity = (String) parent.getItemAtPosition(position);
-                String cityEnglish = cityMap.get(selectedHebrewCity);
-                getWeather(cityEnglish); // קריאה אוטומטית למזג אוויר
+                if (position == 0) return;
+                String cityEng = cityMap.get(parent.getItemAtPosition(position));
+                getWeather(cityEng);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-
         // כפתור התנתקות
-        Button buttonLogout = findViewById(R.id.buttonLogout);
-        buttonLogout.setOnClickListener(v -> {
+        findViewById(R.id.buttonLogout).setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(userpage.this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
+
+        // מעבר ל־user2Activity
         Btnuser2.setOnClickListener(v -> {
             Intent intent = new Intent(userpage.this, user2Activity.class);
+
+            // שליחת הגדרות למעבר ל־user2Activity
+            boolean isMale = isMaleSelected;
+            String tempStr = tvTemperature.getText().toString().replaceAll("[^0-9]", "");
+            double temperature = tempStr.isEmpty() ? 25 : Double.parseDouble(tempStr);
+
+            intent.putExtra("IS_MALE", isMale);
+            intent.putExtra("TEMPERATURE", temperature);
+
             startActivity(intent);
         });
-
     }
 
-    // 🔹 פונקציה למזג אוויר לפי עיר באנגלית
+    // פונקציה למשיכת מזג אוויר
     private void getWeather(String city) {
         new Thread(() -> {
             try {
-                String apiKey = "e8e3be7aa7ae0f758c5ae79ac5e4d8be"; // המפתח שלך
+                String apiKey = "e8e3be7aa7ae0f758c5ae79ac5e4d8be";
                 String urlString = "https://api.openweathermap.org/data/2.5/weather?q="
                         + city + "&units=metric&lang=he&appid=" + apiKey;
 
@@ -147,16 +161,12 @@ public class userpage extends AppCompatActivity {
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
                 int responseCode = connection.getResponseCode();
-                if (responseCode != 200) {
-                    throw new Exception("Response code: " + responseCode);
-                }
+                if (responseCode != 200) throw new Exception("Response code: " + responseCode);
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder result = new StringBuilder();
                 String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
-                }
+                while ((line = reader.readLine()) != null) result.append(line);
 
                 JSONObject json = new JSONObject(result.toString());
                 double temp = json.getJSONObject("main").getDouble("temp");
@@ -165,6 +175,7 @@ public class userpage extends AppCompatActivity {
                 runOnUiThread(() -> {
                     tvForecast.setText("תחזית: " + description);
                     tvTemperature.setText("מעלות: " + (int) temp + "°");
+
                 });
 
             } catch (Exception e) {

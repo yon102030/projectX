@@ -83,8 +83,8 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- RadioGroup מועדף / לא מועדף אנכי -->
-    <LinearLayout
-        android:id="@+id/layout_favorite"
+    <RadioGroup
+        android:id="@+id/radio_gender_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -93,33 +93,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <CheckBox
-            android:id="@+id/check_male"
+        <RadioButton
+            android:id="@+id/radio_male"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="גבר"
             android:textSize="18sp" />
 
-        <CheckBox
-            android:id="@+id/check_female"
+        <RadioButton
+            android:id="@+id/radio_female"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="אישה"
             android:textSize="18sp" />
 
-    </LinearLayout>
+    </RadioGroup>
 
 
     <ImageView
         android:id="@+id/item_image"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="221dp"
+        android:layout_height="162dp"
         android:layout_marginTop="16dp"
         android:background="@android:color/darker_gray"
         android:scaleType="centerCrop"
-        app:layout_constraintTop_toBottomOf="@id/layout_favorite"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/radio_gender_group" />
 
 
     <LinearLayout

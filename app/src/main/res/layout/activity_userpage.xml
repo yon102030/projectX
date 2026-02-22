@@ -76,7 +76,7 @@ android:textColor="#01579B"
 
         <TextView
             android:id="@+id/tvDate"
-            android:layout_width="334dp"
+            android:layout_width="321dp"
             android:layout_height="wrap_content"
             android:gravity="start"
 
@@ -104,7 +104,7 @@ android:textColor="#01579B"
 
         <TextView
             android:id="@+id/tvForecast"
-            android:layout_width="334dp"
+            android:layout_width="322dp"
             android:layout_height="wrap_content"
             android:gravity="start"
             android:text="תחזית"
@@ -186,13 +186,44 @@ android:background="#4FC3F7"
 
     <Button
         android:id="@+id/buttonuser2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Button"
-        tools:layout_editor_absoluteX="85dp"
-        tools:layout_editor_absoluteY="524dp" />
+        android:layout_width="178dp"
+        android:layout_height="59dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="#0288D1"
+        android:elevation="4dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="קדימה לעיצוב!"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/genderBox" />
+
     <!-- כפתור התנתקות -->
-<Button
+    <Button
+        android:id="@+id/additem"
+        android:layout_width="174dp"
+        android:layout_height="59dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="#0288D1"
+        android:elevation="4dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:text="הוסף פריט "
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/genderBox" />
+
+    <Button
 android:id="@+id/buttonLogout"
 android:layout_width="200dp"
 android:layout_height="wrap_content"
