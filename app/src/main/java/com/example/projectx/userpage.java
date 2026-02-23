@@ -131,7 +131,7 @@ public class userpage extends AppCompatActivity {
 
         // מעבר ל־user2Activity
         Btnuser2.setOnClickListener(v -> {
-            Intent intent = new Intent(userpage.this, user2Activity.class);
+            Intent intent = new Intent(userpage.this, colorpage.class);
 
             // שליחת הגדרות למעבר ל־user2Activity
             boolean isMale = isMaleSelected;

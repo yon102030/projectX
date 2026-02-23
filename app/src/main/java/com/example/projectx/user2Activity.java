@@ -28,6 +28,7 @@ public class user2Activity extends AppCompatActivity {
 
     private double temperature;
     private boolean isMale;
+    private List<String> topColors, bottomColors;
 
     private List<Clothe> filteredClothes = new ArrayList<>();
     private List<Clothe> topClothes = new ArrayList<>();
@@ -49,6 +50,8 @@ public class user2Activity extends AppCompatActivity {
         // נתונים מה-Intent
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
         isMale = getIntent().getBooleanExtra("IS_MALE", true);
+        topColors = getIntent().getStringArrayListExtra("TOP_COLORS");
+        bottomColors = getIntent().getStringArrayListExtra("BOTTOM_COLORS");
 
         loadClothes();
 
@@ -60,7 +63,7 @@ public class user2Activity extends AppCompatActivity {
             @Override
             public void onCompleted(List<Clothe> clothes) {
                 if (clothes != null) {
-                    filteredClothes = filterClothes(clothes, temperature, isMale);
+                    filteredClothes = filterClothes(clothes, temperature, isMale, topColors, bottomColors);
                     separateTopBottom(filteredClothes);
                     populateRows();
                     setRandomCentralImages(); // הצגה ראשונית של תמונות רנדומליות
@@ -75,9 +78,9 @@ public class user2Activity extends AppCompatActivity {
         });
     }
 
-    // סינון לפי עונה ומגדר
-    // סינון לפי עונה ומגדר
-    private List<Clothe> filterClothes(List<Clothe> clothes, double temperature, boolean isMale) {
+    // סינון לפי עונה, מגדר וצבעים
+    private List<Clothe> filterClothes(List<Clothe> clothes, double temperature, boolean isMale,
+                                       List<String> topColors, List<String> bottomColors) {
         List<Clothe> filtered = new ArrayList<>();
         String season;
 
@@ -89,13 +92,39 @@ public class user2Activity extends AppCompatActivity {
         boolean favoriteFlag = isMale;
 
         for (Clothe c : clothes) {
-            // אם הפריט מסומן לכל העונות, הוא תמיד נכנס
-            if (c.isFavorite() == favoriteFlag &&
-                    (c.getSeason().equalsIgnoreCase(season) || c.getSeason().equalsIgnoreCase("All"))) {
+            boolean seasonMatch = c.getSeason().equalsIgnoreCase(season) || c.getSeason().equalsIgnoreCase("All");
+            boolean genderMatch = c.isFavorite() == favoriteFlag;
+            boolean colorMatch;
+
+            if (isTopType(c.getType())) {
+                colorMatch = topColors == null || topColors.isEmpty() || topColors.contains(c.getColor());
+            } else {
+                colorMatch = bottomColors == null || bottomColors.isEmpty() || bottomColors.contains(c.getColor());
+            }
+
+            if (seasonMatch && genderMatch && colorMatch) {
                 filtered.add(c);
             }
         }
         return filtered;
+    }
+
+    private boolean isTopType(String type) {
+        switch (type) {
+            case "חולצה קצרה":
+            case "חולצה ארוכה":
+            case "גופייה":
+            case "סוודר":
+            case "קפוצון":
+            case "זקט":
+            case "מעיל":
+            case "עליונית":
+            case "ווסט":
+            case "חולצת פולו":
+                return true;
+            default:
+                return false;
+        }
     }
 
     // הפרדה לשורה עליונה ותחתונה
@@ -103,36 +132,8 @@ public class user2Activity extends AppCompatActivity {
         topClothes.clear();
         bottomClothes.clear();
         for (Clothe clothe : clothes) {
-            switch (clothe.getType()) {
-                case "חולצה קצרה":
-                case "חולצה ארוכה":
-                case "גופייה":
-                case "סוודר":
-                case "קפוצון":
-                case "זקט":
-                case "מעיל":
-                case "עליונית":
-                case "ווסט":
-                case "חולצת פולו":
-                    topClothes.add(clothe);
-                    break;
-
-                case "מכנסיים ארוכים":
-                case "מכנסיים קצרים":
-                case "גינס":
-                case "חצאית":
-                case "שמלה":
-                case "טייטס":
-                case "טרנינג":
-                case "חליפת ספורט":
-                case "סרבל":
-                    bottomClothes.add(clothe);
-                    break;
-
-                default:
-                    topClothes.add(clothe);
-                    break;
-            }
+            if (isTopType(clothe.getType())) topClothes.add(clothe);
+            else bottomClothes.add(clothe);
         }
     }
 
