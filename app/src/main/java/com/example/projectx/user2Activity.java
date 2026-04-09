@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.projectx.model.Clothe;
 import com.example.projectx.services.DatabaseService;
 import com.example.projectx.util.ImageUtil;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.Random;
 public class user2Activity extends AppCompatActivity {
 
     private LinearLayout rowTop, rowBottom;
-    private ImageView ivTop, ivButtom;
+    private ImageView ivTop, ivBottom;
     private Button btnRefresh;
 
     private double temperature;
@@ -44,7 +45,7 @@ public class user2Activity extends AppCompatActivity {
         rowTop = findViewById(R.id.row_top);
         rowBottom = findViewById(R.id.row_bottom);
         ivTop = findViewById(R.id.ivTop);
-        ivButtom = findViewById(R.id.ivbButtom);
+        ivBottom = findViewById(R.id.ivbButtom);
         btnRefresh = findViewById(R.id.btnRefresh);
 
         // נתונים מה-Intent
@@ -59,7 +60,9 @@ public class user2Activity extends AppCompatActivity {
     }
 
     private void loadClothes() {
-        DatabaseService.getInstance().getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
+        // קבלת userId מהמשתמש המחובר
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseService.getInstance().getUserClothes(currentUserId, new DatabaseService.DatabaseCallback<List<Clothe>>() {
             @Override
             public void onCompleted(List<Clothe> clothes) {
                 if (clothes != null) {
@@ -78,7 +81,6 @@ public class user2Activity extends AppCompatActivity {
         });
     }
 
-    // סינון לפי עונה, מגדר וצבעים
     private List<Clothe> filterClothes(List<Clothe> clothes, double temperature, boolean isMale,
                                        List<String> topColors, List<String> bottomColors) {
         List<Clothe> filtered = new ArrayList<>();
@@ -127,7 +129,6 @@ public class user2Activity extends AppCompatActivity {
         }
     }
 
-    // הפרדה לשורה עליונה ותחתונה
     private void separateTopBottom(List<Clothe> clothes) {
         topClothes.clear();
         bottomClothes.clear();
@@ -137,7 +138,6 @@ public class user2Activity extends AppCompatActivity {
         }
     }
 
-    // הצגת שורות העליונים והתחתונים
     private void populateRows() {
         rowTop.removeAllViews();
         rowBottom.removeAllViews();
@@ -150,7 +150,7 @@ public class user2Activity extends AppCompatActivity {
 
         for (Clothe clothe : bottomClothes) {
             ImageView imageView = createImageView(clothe);
-            imageView.setOnClickListener(v -> ivButtom.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl())));
+            imageView.setOnClickListener(v -> ivBottom.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl())));
             rowBottom.addView(imageView);
         }
     }
@@ -173,7 +173,6 @@ public class user2Activity extends AppCompatActivity {
         return imageView;
     }
 
-    // הצגת שתי תמונות אקראיות במרכז
     private void setRandomCentralImages() {
         if (!topClothes.isEmpty()) {
             Clothe top = topClothes.get(random.nextInt(topClothes.size()));
@@ -182,11 +181,10 @@ public class user2Activity extends AppCompatActivity {
 
         if (!bottomClothes.isEmpty()) {
             Clothe bottom = bottomClothes.get(random.nextInt(bottomClothes.size()));
-            ivButtom.setImageBitmap(ImageUtil.convertFrom64base(bottom.getImageUrl()));
+            ivBottom.setImageBitmap(ImageUtil.convertFrom64base(bottom.getImageUrl()));
         }
     }
 
-    // אופציונלי: DragListener אם רוצים לגרור פריטים
     private static class DragListener implements View.OnDragListener {
         @Override
         public boolean onDrag(View v, DragEvent event) {

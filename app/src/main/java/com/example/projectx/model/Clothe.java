@@ -10,10 +10,13 @@ public class Clothe {
     private String season;
     private boolean isFavorite;
 
+    // 🔥 חדש - מזהה המשתמש
+    private String userId;
+
     // 🔹 Constructor ריק - חובה ל-Firebase
     public Clothe() { }
 
-    public Clothe(String itemId, String name, String type, String color, String imageUrl, String season, boolean isFavorite) {
+    public Clothe(String itemId, String name, String type, String color, String imageUrl, String season, boolean isFavorite, String userId) {
         this.itemId = itemId;
         this.name = name;
         this.type = type;
@@ -21,6 +24,7 @@ public class Clothe {
         this.imageUrl = imageUrl;
         this.season = season;
         this.isFavorite = isFavorite;
+        this.userId = userId;
     }
 
     // --- Getters & Setters ---
@@ -45,6 +49,10 @@ public class Clothe {
     public boolean isFavorite() { return isFavorite; }
     public void setFavorite(boolean favorite) { isFavorite = favorite; }
 
+    // 🔥 חדש
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
     @Override
     public String toString() {
         return "Clothe{" +
@@ -55,6 +63,7 @@ public class Clothe {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", season='" + season + '\'' +
                 ", isFavorite=" + isFavorite +
+                ", userId='" + userId + '\'' +
                 '}';
     }
 }

@@ -29,8 +29,7 @@ public class AddClothe extends AppCompatActivity {
 
     private DatabaseService databaseService;
     private ActivityResultLauncher<Intent> cameraLauncher;
-
-    int SELECT_PICTURE = 200;
+    private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +37,10 @@ public class AddClothe extends AppCompatActivity {
         setContentView(R.layout.activity_addclothe);
 
         initViews();
-
         ImageUtil.requestPermission(this);
         databaseService = DatabaseService.getInstance();
 
-        // מצלמה
+        // ✨ Camera launcher
         cameraLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -52,11 +50,30 @@ public class AddClothe extends AppCompatActivity {
                     }
                 });
 
-        btnGallery.setOnClickListener(v -> imageChooser());
+        // ✨ Gallery launcher
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri selectedImageUri = result.getData().getData();
+                        if (selectedImageUri != null) {
+                            itemImage.setImageURI(selectedImageUri);
+                        }
+                    }
+                });
+
+        btnGallery.setOnClickListener(v -> {
+            Intent i = new Intent();
+            i.setType("image/*");
+            i.setAction(Intent.ACTION_GET_CONTENT);
+            galleryLauncher.launch(Intent.createChooser(i, "Select Picture"));
+        });
+
         btnCamera.setOnClickListener(v -> {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             cameraLauncher.launch(intent);
         });
+
         btnAdd.setOnClickListener(v -> addClothe());
 
         // מלא את ה-spinner של העונות עם "All" בתחילת הרשימה
@@ -72,11 +89,8 @@ public class AddClothe extends AppCompatActivity {
         spinnerType = findViewById(R.id.spinner_type);
         spinnerColor = findViewById(R.id.spinner_color);
         spinnerSeason = findViewById(R.id.spinner_season);
-
         radioGenderGroup = findViewById(R.id.radio_gender_group);
-
         itemImage = findViewById(R.id.item_image);
-
         btnGallery = findViewById(R.id.button_choose_gallery);
         btnCamera = findViewById(R.id.button_take_photo);
         btnAdd = findViewById(R.id.button_add);
@@ -104,15 +118,19 @@ public class AddClothe extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String clotheId = databaseService.generateClotheId();
 
-        // יצירת אובייקט Clothe
+        // אם אין שם למוצר אפשר להשתמש ב-type
+        String name = type;
+
+        // יצירת אובייקט Clothe מתוקן
         Clothe clothe = new Clothe(
-                clotheId,
-                userId,
-                type,
-                color,
-                imageUrl,
-                season,
-                isFavorite
+                clotheId,   // itemId
+                name,       // name
+                type,       // type
+                color,      // color
+                imageUrl,   // imageUrl
+                season,     // season
+                isFavorite, // isFavorite
+                userId      // userId
         );
 
         databaseService.createNewClothe(clothe, new DatabaseService.DatabaseCallback<Void>() {
@@ -127,25 +145,5 @@ public class AddClothe extends AppCompatActivity {
                 Toast.makeText(AddClothe.this, "שגיאה בהוספת הפריט", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void imageChooser() {
-        Intent i = new Intent();
-        i.setType("image/*");
-        i.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(i, "Select Picture"), SELECT_PICTURE);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            if (requestCode == SELECT_PICTURE) {
-                Uri selectedImageUri = data.getData();
-                if (selectedImageUri != null) {
-                    itemImage.setImageURI(selectedImageUri);
-                }
-            }
-        }
     }
 }
