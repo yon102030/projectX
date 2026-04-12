@@ -64,6 +64,7 @@ public class DatabaseService {
         });
     }
 
+
     private DatabaseReference readData(String path) {
         return databaseReference.child(path);
     }
@@ -146,6 +147,7 @@ public class DatabaseService {
         writeData(CLOTHES_PATH + "/" + clothe.getItemId(), clothe, callback);
     }
 
+
     public void getClothe(String id, DatabaseCallback<Clothe> callback) {
         getData(CLOTHES_PATH + "/" + id, Clothe.class, callback);
     }
@@ -192,6 +194,10 @@ public class DatabaseService {
     public void createNewOutfit(Outfit outfit, DatabaseCallback<Void> callback) {
         writeData(OUTFITS_PATH + "/" + outfit.getOutfitId(), outfit, callback);
     }
+    public void deleteUser(String userId, DatabaseCallback<Void> callback) {
+        deleteData(USERS_PATH + "/" + userId, callback);
+    }
+
 
     public void getOutfit(String id, DatabaseCallback<Outfit> callback) {
         getData(OUTFITS_PATH + "/" + id, Outfit.class, callback);

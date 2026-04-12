@@ -99,6 +99,9 @@ public class userpage extends AppCompatActivity {
         cityMap.put("אשדוד", "Ashdod");
         cityMap.put("אילת", "Eilat");
         cityMap.put("אורנג’סטאד", "Oranjestad"); // טמפרטורה כעת ~27°C
+        cityMap.put("אלסקה", "Alaska");
+        cityMap.put("דוהה", "Doha");
+
 
         ArrayList<String> cityList = new ArrayList<>();
         cityList.add("בחר עיר");

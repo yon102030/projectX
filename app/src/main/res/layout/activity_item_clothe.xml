@@ -4,49 +4,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="12dp">
 
-    <!-- תמונת הבגד -->
+    <!-- תמונה -->
     <ImageView
         android:id="@+id/image_clothe"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- כוכב למועדף -->
-    <ImageView
-        android:id="@+id/image_favorite"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintStart_toEndOf="@id/image_clothe"
-        app:layout_constraintTop_toTopOf="@id/image_clothe" />
-
-    <!-- סוג הבגד -->
+    <!-- סוג -->
     <TextView
         android:id="@+id/text_type"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/image_clothe"
-        app:layout_constraintTop_toTopOf="@id/image_clothe"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/image_clothe"/>
 
-    <!-- צבע הבגד -->
+    <!-- צבע -->
     <TextView
         android:id="@+id/text_color"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/image_clothe"
-        app:layout_constraintTop_toBottomOf="@id/text_type"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_type"/>
 
     <!-- עונה -->
     <TextView
@@ -54,9 +51,29 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="14sp"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/image_clothe"
-        app:layout_constraintTop_toBottomOf="@id/text_color"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_color"/>
+
+    <!-- כפתור מחיקה -->
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#DB1E1E"
+        android:paddingHorizontal="16dp"
+        android:text="Delete"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/text_color"
+        app:layout_constraintTop_toBottomOf="@id/text_season"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

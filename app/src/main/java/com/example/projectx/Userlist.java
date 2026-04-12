@@ -1,25 +1,29 @@
 package com.example.projectx;
 
 import android.os.Bundle;
-import android.widget.ListView;
-import android.widget.TextView;
-import java.util.ArrayList;
-import android.widget.ArrayAdapter;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.projectx.adapter.UserAdapter;
 import com.example.projectx.model.User;
 import com.example.projectx.services.DatabaseService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Userlist extends AppCompatActivity {
 
-    private ListView lvUsers;
+    private RecyclerView rvUsers;
     private DatabaseService databaseService;
+    private UserAdapter adapter;
+    private List<User> users;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,52 +31,67 @@ public class Userlist extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userlist);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        rvUsers = findViewById(R.id.rvUsers);
+        rvUsers.setLayoutManager(new LinearLayoutManager(this));
 
-        lvUsers = findViewById(R.id.lvUsers);
         databaseService = DatabaseService.getInstance();
 
-        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
-            @Override
-            public void onCompleted(List<User> users) {
+        // 🔥 אתחול רשימה
+        users = new ArrayList<>();
 
-                ArrayList<String> userList = new ArrayList<>();
+        // 🔥 יצירת adapter עם מחיקה
+        adapter = new UserAdapter(users, (user, position) -> {
 
-                for (User u : users) {
-                    userList.add(
-                            u.getfName() + " " +
-                                    u.getlName() + " - " +
-                                    u.getEmail()
-                    );
+            databaseService.deleteUser(user.getUserId(), new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(Void object) {
+
+                    users.remove(user); // ✅ לא לפי position
+                    adapter.notifyDataSetChanged();
+
+                    Toast.makeText(Userlist.this,
+                            "User deleted",
+                            Toast.LENGTH_SHORT).show();
                 }
 
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        Userlist.this,
-                        android.R.layout.simple_list_item_1,
-                        userList
-                );
+                @Override
+                public void onFailed(Exception e) {
 
-                lvUsers.setAdapter(adapter);
+                    Toast.makeText(Userlist.this,
+                            "Delete failed",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+
+        rvUsers.setAdapter(adapter);
+
+        // 🔥 טעינת משתמשים מהדאטהבייס
+        databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+
+            @Override
+            public void onCompleted(List<User> usersFromFirebase) {
+
+                if (usersFromFirebase == null) {
+                    Toast.makeText(Userlist.this,
+                            "No users found",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                users.clear();
+                users.addAll(usersFromFirebase);
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onFailed(Exception e) {
-                ArrayList<String> error = new ArrayList<>();
-                error.add("Failed to load users");
 
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        Userlist.this,
-                        android.R.layout.simple_list_item_1,
-                        error
-                );
-
-                lvUsers.setAdapter(adapter);
+                Toast.makeText(Userlist.this,
+                        "Failed to load users",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 }
-

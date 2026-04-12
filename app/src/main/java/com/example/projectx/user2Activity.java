@@ -1,10 +1,9 @@
 package com.example.projectx;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -13,6 +12,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.projectx.model.Clothe;
+import com.example.projectx.model.Outfit;
 import com.example.projectx.services.DatabaseService;
 import com.example.projectx.util.ImageUtil;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,160 +23,202 @@ import java.util.Random;
 
 public class user2Activity extends AppCompatActivity {
 
+    private ImageView ivTop, ivOuter, ivBottom;
+    private Button btnRefresh, btnSaveLook,btnSaved;
+
     private LinearLayout rowTop, rowBottom;
-    private ImageView ivTop, ivBottom;
-    private Button btnRefresh;
+
+    private final Random random = new Random();
 
     private double temperature;
-    private boolean isMale;
     private List<String> topColors, bottomColors;
 
     private List<Clothe> filteredClothes = new ArrayList<>();
     private List<Clothe> topClothes = new ArrayList<>();
+    private List<Clothe> outerClothes = new ArrayList<>();
     private List<Clothe> bottomClothes = new ArrayList<>();
-
-    private final Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user2);
 
+        ivTop = findViewById(R.id.ivTop);
+        ivOuter = findViewById(R.id.ivTopLayer);
+        ivBottom = findViewById(R.id.ivbButtom);
+
         rowTop = findViewById(R.id.row_top);
         rowBottom = findViewById(R.id.row_bottom);
-        ivTop = findViewById(R.id.ivTop);
-        ivBottom = findViewById(R.id.ivbButtom);
-        btnRefresh = findViewById(R.id.btnRefresh);
 
-        // נתונים מה-Intent
+        btnRefresh = findViewById(R.id.btnRefresh);
+        btnSaveLook = findViewById(R.id.btnSaveLook);
+        btnSaved = findViewById(R.id.btnSavedLooks);
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
-        isMale = getIntent().getBooleanExtra("IS_MALE", true);
         topColors = getIntent().getStringArrayListExtra("TOP_COLORS");
         bottomColors = getIntent().getStringArrayListExtra("BOTTOM_COLORS");
 
         loadClothes();
 
-        btnRefresh.setOnClickListener(v -> setRandomCentralImages());
-    }
-
-    private void loadClothes() {
-        // קבלת userId מהמשתמש המחובר
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseService.getInstance().getUserClothes(currentUserId, new DatabaseService.DatabaseCallback<List<Clothe>>() {
-            @Override
-            public void onCompleted(List<Clothe> clothes) {
-                if (clothes != null) {
-                    filteredClothes = filterClothes(clothes, temperature, isMale, topColors, bottomColors);
-                    separateTopBottom(filteredClothes);
-                    populateRows();
-                    setRandomCentralImages(); // הצגה ראשונית של תמונות רנדומליות
-                }
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                e.printStackTrace();
-                Toast.makeText(user2Activity.this, "שגיאה בטעינת פריטים", Toast.LENGTH_SHORT).show();
-            }
+        btnRefresh.setOnClickListener(v -> setRandomLook());
+        btnSaveLook.setOnClickListener(v -> saveLook());
+        btnSaved.setOnClickListener(v -> {
+            Intent intent = new Intent(this, savedlooks.class);
+            startActivity(intent);
         });
     }
 
-    private List<Clothe> filterClothes(List<Clothe> clothes, double temperature, boolean isMale,
-                                       List<String> topColors, List<String> bottomColors) {
-        List<Clothe> filtered = new ArrayList<>();
-        String season;
+    // ================= LOAD =================
+    private void loadClothes() {
 
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        DatabaseService.getInstance().getUserClothes(userId,
+                new DatabaseService.DatabaseCallback<List<Clothe>>() {
+
+                    @Override
+                    public void onCompleted(List<Clothe> clothes) {
+
+                        if (clothes == null) return;
+
+                        filteredClothes = filterClothes(clothes);
+                        separateClothes(filteredClothes);
+                        populateRows();   // 🔥 חשוב!
+                        setRandomLook();
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Toast.makeText(user2Activity.this,
+                                "Error loading clothes",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ================= FILTER =================
+    private List<Clothe> filterClothes(List<Clothe> clothes) {
+
+        List<Clothe> filtered = new ArrayList<>();
+
+        String season;
         if (temperature >= 25) season = "קיץ";
         else if (temperature >= 20) season = "אביב";
-        else if (temperature >= 19) season = "סתיו";
+        else if (temperature >= 15) season = "סתיו";
         else season = "חורף";
 
-        boolean favoriteFlag = isMale;
-
         for (Clothe c : clothes) {
-            boolean seasonMatch = c.getSeason().equalsIgnoreCase(season) || c.getSeason().equalsIgnoreCase("All");
-            boolean genderMatch = c.isFavorite() == favoriteFlag;
-            boolean colorMatch;
 
-            if (isTopType(c.getType())) {
-                colorMatch = topColors == null || topColors.isEmpty() || topColors.contains(c.getColor());
-            } else {
-                colorMatch = bottomColors == null || bottomColors.isEmpty() || bottomColors.contains(c.getColor());
-            }
+            if (c == null) continue;
 
-            if (seasonMatch && genderMatch && colorMatch) {
+            boolean seasonMatch =
+                    c.getSeason() == null ||
+                            c.getSeason().equalsIgnoreCase("All") ||
+                            c.getSeason().contains(season);
+
+            boolean colorMatch = isColorMatch(c);
+
+            if (seasonMatch && colorMatch) {
                 filtered.add(c);
             }
         }
+
         return filtered;
     }
 
-    private boolean isTopType(String type) {
-        switch (type) {
-            case "חולצה קצרה":
-            case "חולצה ארוכה":
-            case "גופייה":
-            case "סוודר":
-            case "קפוצון":
-            case "זקט":
-            case "מעיל":
-            case "עליונית":
-            case "ווסט":
-            case "חולצת פולו":
+    // ================= COLOR =================
+    private boolean isColorMatch(Clothe c) {
+
+        String color = c.getColor();
+        if (color == null) return true;
+
+        List<String> list =
+                (isTop(c.getType()) || isOuter(c.getType()))
+                        ? topColors
+                        : bottomColors;
+
+        if (list == null || list.isEmpty()) return true;
+
+        for (String s : list) {
+            if (s != null && s.equalsIgnoreCase(color.trim())) {
                 return true;
-            default:
-                return false;
+            }
         }
+        return false;
     }
 
-    private void separateTopBottom(List<Clothe> clothes) {
-        topClothes.clear();
-        bottomClothes.clear();
-        for (Clothe clothe : clothes) {
-            if (isTopType(clothe.getType())) topClothes.add(clothe);
-            else bottomClothes.add(clothe);
-        }
-    }
-
+    // ================= POPULATE SCROLL =================
     private void populateRows() {
+
         rowTop.removeAllViews();
         rowBottom.removeAllViews();
 
-        for (Clothe clothe : topClothes) {
-            ImageView imageView = createImageView(clothe);
-            imageView.setOnClickListener(v -> ivTop.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl())));
-            rowTop.addView(imageView);
-        }
+        for (Clothe c : filteredClothes) {
 
-        for (Clothe clothe : bottomClothes) {
-            ImageView imageView = createImageView(clothe);
-            imageView.setOnClickListener(v -> ivBottom.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl())));
-            rowBottom.addView(imageView);
+            ImageView img = new ImageView(this);
+
+            // 🔥 גודל מותאם ל־HorizontalScrollView הגבוה
+            int size = (int) getResources().getDimension(R.dimen.item_thumbnail);
+            if (size == 0) size = 140;
+
+            LinearLayout.LayoutParams params =
+                    new LinearLayout.LayoutParams(size, size);
+
+            params.setMargins(10, 10, 10, 10);
+            img.setLayoutParams(params);
+
+            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+            Bitmap bmp = ImageUtil.convertFrom64base(c.getImageUrl());
+            img.setImageBitmap(bmp);
+
+            img.setOnClickListener(v -> {
+
+                if (isTop(c.getType())) ivTop.setImageBitmap(bmp);
+                else if (isOuter(c.getType())) ivOuter.setImageBitmap(bmp);
+                else ivBottom.setImageBitmap(bmp);
+            });
+
+            if (isTop(c.getType()) || isOuter(c.getType())) {
+                rowTop.addView(img);
+            } else {
+                rowBottom.addView(img);
+            }
         }
     }
 
-    private ImageView createImageView(Clothe clothe) {
-        ImageView imageView = new ImageView(this);
-        Bitmap bitmap = ImageUtil.convertFrom64base(clothe.getImageUrl());
-        imageView.setImageBitmap(bitmap);
+    // ================= SEPARATE =================
+    private void separateClothes(List<Clothe> clothes) {
 
-        int size = (int) getResources().getDimension(R.dimen.item_thumbnail);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
-        params.setMargins(8, 8, 8, 8);
-        imageView.setLayoutParams(params);
+        topClothes.clear();
+        outerClothes.clear();
+        bottomClothes.clear();
 
-        imageView.setOnLongClickListener(v -> {
-            v.startDragAndDrop(null, new View.DragShadowBuilder(v), v, 0);
-            return true;
-        });
+        for (Clothe c : clothes) {
 
-        return imageView;
+            if (isOuter(c.getType())) {
+                outerClothes.add(c);
+            } else if (isTop(c.getType())) {
+                topClothes.add(c);
+            } else {
+                bottomClothes.add(c);
+            }
+        }
     }
 
-    private void setRandomCentralImages() {
+    // ================= RANDOM LOOK =================
+    private void setRandomLook() {
+
         if (!topClothes.isEmpty()) {
             Clothe top = topClothes.get(random.nextInt(topClothes.size()));
             ivTop.setImageBitmap(ImageUtil.convertFrom64base(top.getImageUrl()));
+        }
+
+        if (!outerClothes.isEmpty() && temperature < 20) {
+            Clothe outer = outerClothes.get(random.nextInt(outerClothes.size()));
+            ivOuter.setVisibility(View.VISIBLE);
+            ivOuter.setImageBitmap(ImageUtil.convertFrom64base(outer.getImageUrl()));
+        } else {
+            ivOuter.setVisibility(View.GONE);
         }
 
         if (!bottomClothes.isEmpty()) {
@@ -185,29 +227,59 @@ public class user2Activity extends AppCompatActivity {
         }
     }
 
-    private static class DragListener implements View.OnDragListener {
-        @Override
-        public boolean onDrag(View v, DragEvent event) {
-            LinearLayout container = (LinearLayout) v;
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                case DragEvent.ACTION_DRAG_ENTERED:
-                case DragEvent.ACTION_DRAG_LOCATION:
-                case DragEvent.ACTION_DRAG_EXITED:
-                    return true;
-                case DragEvent.ACTION_DROP:
-                    View draggedView = (View) event.getLocalState();
-                    ViewGroup owner = (ViewGroup) draggedView.getParent();
-                    if (owner == container) {
-                        owner.removeView(draggedView);
-                        container.addView(draggedView);
+    // ================= SAVE =================
+    private void saveLook() {
+
+        String outfitId = DatabaseService.getInstance().generateOutfitId();
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        String top = ImageUtil.convertTo64Base(ivTop);
+
+        String outer = ivOuter.getVisibility() == View.VISIBLE
+                ? ImageUtil.convertTo64Base(ivOuter)
+                : null;
+
+        String bottom = ImageUtil.convertTo64Base(ivBottom);
+
+        Outfit outfit = new Outfit(outfitId, userId, top, outer, bottom);
+
+        DatabaseService.getInstance().createNewOutfit(outfit,
+                new DatabaseService.DatabaseCallback<Void>() {
+
+                    @Override
+                    public void onCompleted(Void object) {
+
+                        Toast.makeText(user2Activity.this,
+                                "Saved!",
+                                Toast.LENGTH_SHORT).show();
+
+                        startActivity(new Intent(user2Activity.this, savedlooks.class));
+                        finish();
                     }
-                    return true;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Toast.makeText(user2Activity.this,
+                                "Error saving",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ================= TYPES =================
+    private boolean isTop(String type) {
+        return type != null && (
+                type.equals("חולצה קצרה") ||
+                        type.equals("חולצה ארוכה") ||
+                        type.equals("גופייה")
+        );
+    }
+
+    private boolean isOuter(String type) {
+        return type != null && (
+                type.equals("מעיל") ||
+                        type.equals("קפוצון") ||
+                        type.equals("זקט") ||type.equals("סוודר")
+        );
     }
 }

@@ -31,8 +31,7 @@ public class register extends AppCompatActivity implements View.OnClickListener 
     private static final String TAG = "RegisterActivity";
 
     private EditText etEmail, etPassword, etFName, etLName, etPhone;
-    private Button btnRegister;
-    private TextView tvLogin;
+    private Button btnRegister, tvLogin;
     DatabaseService databaseService;
 
     public static final String MyPREFERENCES = "MyPrefs";
@@ -63,11 +62,17 @@ public class register extends AppCompatActivity implements View.OnClickListener 
         etLName = findViewById(R.id.Lname);
         etPhone = findViewById(R.id.Phone);
         btnRegister = findViewById(R.id.btnRegister);
-        tvLogin=findViewById(R.id.tvlogin);
+        tvLogin=findViewById(R.id.tblogin);
 
         /// set the click listener
         btnRegister.setOnClickListener(this);
         tvLogin.setOnClickListener(this);
+
+
+        tvLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(register.this, Login.class);
+            startActivity(intent);
+        });
     }
 
     @Override

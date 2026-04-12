@@ -1,7 +1,6 @@
 package com.example.projectx;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -24,79 +23,101 @@ public class itemlist extends AppCompatActivity {
     private ClotheAdapter adapter;
     private List<Clothe> clotheList;
 
-
-    ImageView ivTop, ivButtom;
+    private ImageView ivTop, ivButtom;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itemlist);
 
-        // 1. אתחול ה‑RecyclerView
+        // RecyclerView
         recyclerView = findViewById(R.id.recycler_view_clothes);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        ivButtom=findViewById(R.id.ivbButtom);
-        ivTop=findViewById(R.id.ivTop);
+        ivButtom = findViewById(R.id.ivbButtom);
+        ivTop = findViewById(R.id.ivTop);
 
-        // 2. אתחול רשימת פריטים ו‑Adapter עם Context
         clotheList = new ArrayList<>();
 
+        // Adapter עם כל הפעולות כולל מחיקה
+        adapter = new ClotheAdapter(clotheList, new ClotheAdapter.OnClotheClickListener() {
 
-        adapter = new ClotheAdapter( clotheList,  new ClotheAdapter.OnClotheClickListener()  {
             @Override
             public void onClotheClick(Clothe clothe) {
-
-               // if(clothe.getType().contains())
-
-             ivTop.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl()));
-
+                ivTop.setImageBitmap(
+                        ImageUtil.convertFrom64base(clothe.getImageUrl())
+                );
             }
 
             @Override
             public void onLongClotheClick(Clothe clothe) {
-
-                ivButtom.setImageBitmap(ImageUtil.convertFrom64base(clothe.getImageUrl()));
-
-                  // Log.d("Clothe long clicked: " +"clothe.toString()" );
-
+                ivButtom.setImageBitmap(
+                        ImageUtil.convertFrom64base(clothe.getImageUrl())
+                );
             }
 
+            @Override
+            public void onDeleteClothe(Clothe clothe) {
 
+                DatabaseService.getInstance()
+                        .deleteClothe(clothe.getItemId(),
+                                new DatabaseService.DatabaseCallback<Void>() {
 
+                                    @Override
+                                    public void onCompleted(Void object) {
+
+                                        clotheList.remove(clothe);
+                                        adapter.notifyDataSetChanged();
+
+                                        Toast.makeText(itemlist.this,
+                                                "Clothe deleted",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onFailed(Exception e) {
+
+                                        Toast.makeText(itemlist.this,
+                                                "Delete failed",
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+            }
         });
-
-
-
-
-
-
-
 
         recyclerView.setAdapter(adapter);
 
-        // 3. טעינת פריטים מה‑Firebase
         loadClothes();
-
-
     }
 
+    // טעינת נתונים מה־Firebase
     private void loadClothes() {
-        DatabaseService.getInstance().getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
-            @Override
-            public void onCompleted(List<Clothe> clothes) {
-                if (clothes != null) {
-                    clotheList.clear();
-                    clotheList.addAll(clothes);
-                    adapter.notifyDataSetChanged();
-                }
-            }
 
-            @Override
-            public void onFailed(Exception e) {
-                e.printStackTrace();
-                Toast.makeText(itemlist.this, "שגיאה בטעינת פריטים", Toast.LENGTH_SHORT).show();
-            }
-        });
+        DatabaseService.getInstance()
+                .getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
+
+                    @Override
+                    public void onCompleted(List<Clothe> clothes) {
+
+                        if (clothes == null) {
+                            Toast.makeText(itemlist.this,
+                                    "No clothes found",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        clotheList.clear();
+                        clotheList.addAll(clothes);
+                        adapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(itemlist.this,
+                                "Error loading clothes",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

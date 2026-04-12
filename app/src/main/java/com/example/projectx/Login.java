@@ -13,9 +13,6 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.projectx.model.User;
 import com.example.projectx.services.DatabaseService;
@@ -28,14 +25,12 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     private EditText etEmail, etPassword;
     private Button btnLogin;
     private TextView tvRegister;
+
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
 
     public static final String MyPREFERENCES = "MyPrefs";
-
     SharedPreferences sharedpreferences;
-    private String email,password;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,38 +38,46 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login2);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
-
-
         databaseService = DatabaseService.getInstance();
         mAuth = FirebaseAuth.getInstance();
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
         etEmail = findViewById(R.id.Emaillg);
         etPassword = findViewById(R.id.Passwordlg);
         btnLogin = findViewById(R.id.btnlogin);
         tvRegister = findViewById(R.id.registerpage);
 
-        email = sharedpreferences.getString("email", "");
-        password = sharedpreferences.getString("password", "");
-        etEmail.setText(email);
-        etPassword.setText(password);
-
-
         btnLogin.setOnClickListener(this);
         tvRegister.setOnClickListener(this);
+
+        // 🔥 טעינה אוטומטית של נתונים שמורים
+        loadSavedData();
+    }
+
+    // =========================
+    // 🔥 טעינת אימייל וסיסמה
+    // =========================
+    private void loadSavedData() {
+        String email = sharedpreferences.getString("email", "");
+        String password = sharedpreferences.getString("password", "");
+
+        if (!email.isEmpty()) {
+            etEmail.setText(email);
+        }
+
+        if (!password.isEmpty()) {
+            etPassword.setText(password);
+        }
     }
 
     @Override
     public void onClick(View v) {
+
         if (v.getId() == btnLogin.getId()) {
-             email = etEmail.getText().toString().trim();
-             password = etPassword.getText().toString().trim();
+
+            String email = etEmail.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
 
             if (!checkInput(email, password)) return;
 
@@ -86,13 +89,14 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     }
 
     private boolean checkInput(String email, String password) {
+
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("כתובת אימייל לא תקינה");
+            etEmail.setError("Invalid email");
             return false;
         }
 
         if (password.isEmpty() || password.length() < 6) {
-            etPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
+            etPassword.setError("Min 6 characters");
             return false;
         }
 
@@ -100,43 +104,45 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     }
 
     private void loginUser(String email, String password) {
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String uid = mAuth.getCurrentUser().getUid();
 
-                        databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
-                            @Override
-                            public void onCompleted(User user) {
-                                Log.d(TAG, "Login success: " + user.getUserId());
-
-                                SharedPreferences.Editor editor = sharedpreferences.edit();
-                                editor.putString("email", email);
-                                editor.putString("password", password);
-                                editor.apply();
-
-
-                                Intent intent;
-                                if (user.isAdmin()) {
-                                    intent = new Intent(Login.this, Adminpage.class);
-                                } else {
-                                    intent = new Intent(Login.this, userpage.class);
-                                }
-
-                                intent.putExtra("USER_NAME", user.getfName());
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                startActivity(intent);
-                            }
-
-                            @Override
-                            public void onFailed(Exception e) {
-                                Log.e(TAG, "Failed to get user", e);
-                            }
-                        });
-
-                    } else {
-                        etPassword.setError("אימייל או סיסמה שגויים");
+                    if (!task.isSuccessful()) {
+                        etPassword.setError("Wrong email or password");
+                        return;
                     }
+
+                    String uid = mAuth.getCurrentUser().getUid();
+
+                    databaseService.getUser(uid, new DatabaseService.DatabaseCallback<User>() {
+                        @Override
+                        public void onCompleted(User user) {
+
+                            // 🔥 שמירה לפעם הבאה
+                            SharedPreferences.Editor editor = sharedpreferences.edit();
+                            editor.putString("email", email);
+                            editor.putString("password", password);
+                            editor.apply();
+
+                            Intent intent;
+
+                            if (user.isAdmin()) {
+                                intent = new Intent(Login.this, Adminpage.class);
+                            } else {
+                                intent = new Intent(Login.this, userpage.class);
+                            }
+
+                            intent.putExtra("USER_NAME", user.getfName());
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+                            Log.e(TAG, "getUser failed", e);
+                        }
+                    });
                 });
     }
 }
