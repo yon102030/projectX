@@ -50,6 +50,9 @@
         <item>קיץ</item>
         <item>סתיו</item>
         <item>חורף</item>
+        <item>סתיו+חורף</item>
+        <item>סתיו+אביב</item>
+        <item>אביב+קיץ</item>
         <item>כל העונות</item>
     </string-array>
 

@@ -2,9 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:layout_height="match_parent">
 
     <!-- רקע -->
     <ImageView
@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- כותרת למעלה -->
+    <!-- כותרת -->
     <TextView
         android:id="@+id/tvPageTitle"
         android:layout_width="0dp"
@@ -33,7 +33,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- שורות עליונים -->
+    <!-- עליונים -->
     <HorizontalScrollView
         android:id="@+id/horizontal_scroll_top"
         android:layout_width="0dp"
@@ -52,7 +52,7 @@
             android:padding="8dp"/>
     </HorizontalScrollView>
 
-    <!-- שורות תחתונים -->
+    <!-- תחתונים -->
     <HorizontalScrollView
         android:id="@+id/horizontal_scroll_bottom"
         android:layout_width="0dp"
@@ -71,7 +71,7 @@
             android:padding="8dp"/>
     </HorizontalScrollView>
 
-    <!-- תמונות מרכזיות והכפתור ריענון -->
+    <!-- אזור מרכזי -->
     <LinearLayout
         android:id="@+id/centralImagesBox"
         android:layout_width="0dp"
@@ -85,18 +85,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/ivTop"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_marginBottom="16dp"
-            android:scaleType="centerCrop"
-            tools:srcCompat="@tools:sample/avatars"/>
+        <!-- 🔥 2 שכבות למעלה -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="16dp">
 
+            <ImageView
+                android:id="@+id/ivTop"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginEnd="8dp"
+                android:scaleType="centerCrop"
+                tools:srcCompat="@tools:sample/avatars"/>
+
+            <ImageView
+                android:id="@+id/ivTopLayer"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:visibility="gone"
+                android:scaleType="centerCrop"
+                tools:srcCompat="@tools:sample/avatars"/>
+
+        </LinearLayout>
+
+        <!-- תחתון -->
         <ImageView
             android:id="@+id/ivbButtom"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="175dp"
+            android:layout_height="175dp"
             android:layout_marginBottom="16dp"
             android:scaleType="centerCrop"
             tools:srcCompat="@tools:sample/avatars"/>
@@ -111,6 +130,19 @@
             android:text="ריענון הלוק"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
+
+        <!-- ⭐ כפתור חדש: שמירה במועדפים -->
+        <Button
+            android:id="@+id/btnSaveFavorite"
+            android:layout_width="272dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#34343E"
+            android:elevation="4dp"
+            android:text="שמור במועדפים"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
