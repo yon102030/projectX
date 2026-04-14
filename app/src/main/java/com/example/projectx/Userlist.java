@@ -1,6 +1,7 @@
 package com.example.projectx;
 
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -24,7 +25,7 @@ public class Userlist extends AppCompatActivity {
     private DatabaseService databaseService;
     private UserAdapter adapter;
     private List<User> users;
-
+private ImageButton btnBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +34,11 @@ public class Userlist extends AppCompatActivity {
 
         rvUsers = findViewById(R.id.rvUsers);
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
+        btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(v -> {
+            finish(); // סוגר את העמוד הנוכחי וחוזר אחורה
+        });
         databaseService = DatabaseService.getInstance();
 
         // 🔥 אתחול רשימה

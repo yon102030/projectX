@@ -1,8 +1,11 @@
 package com.example.projectx;
 
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +25,7 @@ public class savedlooks extends AppCompatActivity {
     private RecyclerView recyclerSummer;
     private RecyclerView recyclerWinter;
     private OutfitAdapter adapter;
+    private ImageButton btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +34,13 @@ public class savedlooks extends AppCompatActivity {
 
         RecyclerView recyclerSummer = findViewById(R.id.recyclerSummer);
         RecyclerView recyclerWinter = findViewById(R.id.recyclerWinter);
+        btnBack = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
+
+// מעבר למסך userpage (בית בתוך האפליקציה)
 
         // Layouts
         recyclerSummer.setLayoutManager(new GridLayoutManager(this, 2));

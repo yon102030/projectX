@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +49,7 @@ public class colorpage extends AppCompatActivity {
     private TopColorsAdapter topColorsAdapter;
 
     private RecyclerView rvTopColors;
+    private ImageButton btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +67,11 @@ public class colorpage extends AppCompatActivity {
         btnAllTop = findViewById(R.id.btnSelectAllTopColors);
 
         rvTopColors = findViewById(R.id.recyclerTopColors);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            finish(); // חוזר למסך הקודם
+        });
 
         rvTopColors.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -113,6 +120,7 @@ public class colorpage extends AppCompatActivity {
             }
         });
 
+
         btnAllB.setOnClickListener(v -> {
 
             if (!isBottomAllSelected) {
@@ -144,17 +152,47 @@ public class colorpage extends AppCompatActivity {
         populateColorBoxes(layoutBottomColors, selectedBottomColors);
 
         btnApply.setOnClickListener(v -> {
-            if (selectedTopColors.isEmpty() && selectedBottomColors.isEmpty()) {
-                Toast.makeText(this, "בחר לפחות צבע אחד", Toast.LENGTH_SHORT).show();
+
+            // הגנה בסיסית
+            if (selectedTopColors == null || selectedBottomColors == null) {
+                Toast.makeText(this, "שגיאה בטעינת צבעים", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Intent intent = new Intent(colorpage.this, user2Activity.class);
-            intent.putStringArrayListExtra("TOP_COLORS", new ArrayList<>(selectedTopColors));
-            intent.putStringArrayListExtra("BOTTOM_COLORS", new ArrayList<>(selectedBottomColors));
-            intent.putExtra("TEMPERATURE", temperature);
-            intent.putExtra("IS_MALE", isMale);
-            startActivity(intent);
+            boolean topValid = selectedTopColors.size() > 0;
+            boolean bottomValid = selectedBottomColors.size() > 0;
+
+            // בדיקות קלט ברורות
+            if (!topValid && !bottomValid) {
+                Toast.makeText(this, "חייב לבחור לפחות צבע לעליונים ותחתונים", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!topValid) {
+                Toast.makeText(this, "בחר לפחות צבע לעליונים", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!bottomValid) {
+                Toast.makeText(this, "בחר לפחות צבע לתחתונים", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // מעבר לעמוד הבא רק אם הכל תקין
+            try {
+                Intent intent = new Intent(colorpage.this, user2Activity.class);
+
+                intent.putStringArrayListExtra("TOP_COLORS", new ArrayList<>(selectedTopColors));
+                intent.putStringArrayListExtra("BOTTOM_COLORS", new ArrayList<>(selectedBottomColors));
+                intent.putExtra("TEMPERATURE", temperature);
+                intent.putExtra("IS_MALE", isMale);
+
+                startActivity(intent);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "שגיאה במעבר לעמוד הבא", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -165,6 +203,11 @@ public class colorpage extends AppCompatActivity {
             Button colorButton = new Button(this);
             colorButton.setText(colorName);
             colorButton.setAllCaps(false);
+
+            // 🔥 טקסט מודגש
+            colorButton.setTypeface(null, android.graphics.Typeface.BOLD);
+            colorButton.setTextSize(10);
+            colorButton.setPadding(5,5,5,5);
 
             int colorValue;
 
@@ -190,24 +233,37 @@ public class colorpage extends AppCompatActivity {
 
             border.setColor(colorValue);
             border.setStroke(2, 0xFF000000);
-            border.setCornerRadius(8f);
+            border.setCornerRadius(12f);
 
             colorButton.setBackground(border);
-            colorButton.setAlpha(0.5f);
+
+            // 🔥 צבע טקסט חכם
+            int r = (colorValue >> 16) & 0xFF;
+            int g = (colorValue >> 8) & 0xFF;
+            int b = colorValue & 0xFF;
+
+            double brightness = (0.299 * r + 0.587 * g + 0.114 * b);
+
+            if (brightness < 128) {
+                colorButton.setTextColor(0xFFFFFFFF);
+            } else {
+                colorButton.setTextColor(0xFF000000);
+            }
+
+            colorButton.setAlpha(0.6f);
 
             colorButton.setOnClickListener(v -> {
 
                 if (selectedColors.contains(colorName)) {
 
                     selectedColors.remove(colorName);
-                    colorButton.setAlpha(0.5f);
+                    colorButton.setAlpha(0.6f);
 
                 } else {
 
                     selectedColors.add(colorName);
                     colorButton.setAlpha(1f);
 
-                    // 🔥 שמירה קבועה
                     SharedPreferences prefs = getSharedPreferences("colors", MODE_PRIVATE);
                     int count = prefs.getInt(colorName, 0);
                     prefs.edit().putInt(colorName, count + 1).apply();
@@ -219,7 +275,10 @@ public class colorpage extends AppCompatActivity {
             });
 
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.setMargins(8, 8, 8, 8);
+            params.width = 0;
+            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+            params.setMargins(5, 5, 5, 5);
+
             colorButton.setLayoutParams(params);
 
             layout.addView(colorButton);

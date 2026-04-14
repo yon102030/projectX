@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -22,6 +23,7 @@ public class Adminpage extends AppCompatActivity {
     private Button btnLogout, btnUserList, itemlist;
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
+    private ImageButton btnBack;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -39,8 +41,16 @@ public class Adminpage extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
         btnUserList = findViewById(R.id.btnUserList);
         itemlist=findViewById(R.id.itemlist);
+        btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(Adminpage.this, MainActivity.class);
 
+            // מוחק את כל הסטאק כדי למנוע קריסה
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+        });
         // קבלת שם המנהל מה-Intent
         String adminName = getIntent().getStringExtra("USER_NAME");
         tvGreeting.setText("שלום " + adminName);

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="#F5F7FA">
     <ImageView
         android:id="@+id/backgroundImage"
@@ -21,21 +21,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
+
+
+
+
+
     <TextView
         android:id="@+id/tvTitle"
 
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="הלוקים המועדפים"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:textColor="#1E3A8A"
+        android:layout_marginTop="49dp"
         android:gravity="center"
+        android:text="הלוקים המועדפים"
+        android:textColor="#1E3A8A"
+        android:textSize="26sp"
 
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
         android:layout_width="0dp"
@@ -87,8 +93,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
-
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="49dp"
+                android:layout_height="53dp"
+                android:background="@drawable/btn_circle_dark"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_previous"
+                app:tint="#FFFFFF"
+                tools:ignore="MissingConstraints" />
         </LinearLayout>
+
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

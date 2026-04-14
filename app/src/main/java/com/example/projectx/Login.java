@@ -9,6 +9,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -25,7 +26,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
     private EditText etEmail, etPassword;
     private Button btnLogin;
     private TextView tvRegister;
-
+private ImageButton btnBack;
     private DatabaseService databaseService;
     private FirebaseAuth mAuth;
 
@@ -50,7 +51,16 @@ public class Login extends AppCompatActivity implements View.OnClickListener {
 
         btnLogin.setOnClickListener(this);
         tvRegister.setOnClickListener(this);
+        btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, MainActivity.class);
+
+            // מוחק את כל הסטאק כדי למנוע קריסה
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+        });
         // 🔥 טעינה אוטומטית של נתונים שמורים
         loadSavedData();
     }

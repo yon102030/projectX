@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -24,15 +25,17 @@ import java.util.Random;
 public class user2Activity extends AppCompatActivity {
 
     private ImageView ivTop, ivOuter, ivBottom;
-    private Button btnRefresh, btnSaveLook,btnSaved;
+    private Button btnRefresh, btnSaveLook, btnSaved;
 
     private LinearLayout rowTop, rowBottom;
 
     private final Random random = new Random();
 
     private double temperature;
-    private List<String> topColors, bottomColors;
+    private boolean isMale; // 🔥 חדש
 
+    private List<String> topColors, bottomColors;
+private  ImageButton btnBack;
     private List<Clothe> filteredClothes = new ArrayList<>();
     private List<Clothe> topClothes = new ArrayList<>();
     private List<Clothe> outerClothes = new ArrayList<>();
@@ -53,11 +56,23 @@ public class user2Activity extends AppCompatActivity {
         btnRefresh = findViewById(R.id.btnRefresh);
         btnSaveLook = findViewById(R.id.btnSaveLook);
         btnSaved = findViewById(R.id.btnSavedLooks);
+
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
+        isMale = getIntent().getBooleanExtra("IS_MALE", true); // 🔥 קבלת מגדר
+
         topColors = getIntent().getStringArrayListExtra("TOP_COLORS");
         bottomColors = getIntent().getStringArrayListExtra("BOTTOM_COLORS");
+        btnBack = findViewById(R.id.btnBack);
 
         loadClothes();
+
+
+// חזרה אחורה
+        btnBack.setOnClickListener(v -> {
+            finish();
+        });
+
+// מעבר למסך userpage (בית בתוך האפליקציה)
 
         btnRefresh.setOnClickListener(v -> setRandomLook());
         btnSaveLook.setOnClickListener(v -> saveLook());
@@ -82,7 +97,7 @@ public class user2Activity extends AppCompatActivity {
 
                         filteredClothes = filterClothes(clothes);
                         separateClothes(filteredClothes);
-                        populateRows();   // 🔥 חשוב!
+                        populateRows();
                         setRandomLook();
                     }
 
@@ -106,9 +121,19 @@ public class user2Activity extends AppCompatActivity {
         else if (temperature >= 15) season = "סתיו";
         else season = "חורף";
 
+        boolean isMale = getIntent().getBooleanExtra("IS_MALE", true);
+
         for (Clothe c : clothes) {
 
             if (c == null) continue;
+
+            // 🔥 סינון לפי מגדר (לפי isFavorite)
+            boolean genderMatch;
+            if (isMale) {
+                genderMatch = c.isFavorite(); // גבר = מועדף
+            } else {
+                genderMatch = !c.isFavorite(); // אישה = לא מועדף
+            }
 
             boolean seasonMatch =
                     c.getSeason() == null ||
@@ -117,7 +142,7 @@ public class user2Activity extends AppCompatActivity {
 
             boolean colorMatch = isColorMatch(c);
 
-            if (seasonMatch && colorMatch) {
+            if (seasonMatch && colorMatch && genderMatch) {
                 filtered.add(c);
             }
         }
@@ -146,7 +171,7 @@ public class user2Activity extends AppCompatActivity {
         return false;
     }
 
-    // ================= POPULATE SCROLL =================
+    // ================= POPULATE =================
     private void populateRows() {
 
         rowTop.removeAllViews();
@@ -156,7 +181,6 @@ public class user2Activity extends AppCompatActivity {
 
             ImageView img = new ImageView(this);
 
-            // 🔥 גודל מותאם ל־HorizontalScrollView הגבוה
             int size = (int) getResources().getDimension(R.dimen.item_thumbnail);
             if (size == 0) size = 140;
 
@@ -205,7 +229,7 @@ public class user2Activity extends AppCompatActivity {
         }
     }
 
-    // ================= RANDOM LOOK =================
+    // ================= RANDOM =================
     private void setRandomLook() {
 
         if (!topClothes.isEmpty()) {
@@ -279,7 +303,8 @@ public class user2Activity extends AppCompatActivity {
         return type != null && (
                 type.equals("מעיל") ||
                         type.equals("קפוצון") ||
-                        type.equals("זקט") ||type.equals("סוודר")
+                        type.equals("זקט") ||
+                        type.equals("סוודר")
         );
     }
 }

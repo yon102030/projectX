@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -38,6 +39,7 @@ public class register extends AppCompatActivity implements View.OnClickListener 
 
     SharedPreferences sharedpreferences;
     private String email,password;
+    private ImageButton btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,16 @@ public class register extends AppCompatActivity implements View.OnClickListener 
 
         tvLogin.setOnClickListener(v -> {
             Intent intent = new Intent(register.this, Login.class);
+            startActivity(intent);
+        });
+        btnBack = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(register.this, MainActivity.class);
+
+            // מוחק את כל הסטאק כדי למנוע קריסה
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
             startActivity(intent);
         });
     }

@@ -22,7 +22,7 @@ public class itemlist extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ClotheAdapter adapter;
     private List<Clothe> clotheList;
-
+private ImageView btnBack;
     private ImageView ivTop, ivButtom;
 
     @Override
@@ -36,7 +36,11 @@ public class itemlist extends AppCompatActivity {
 
         ivButtom = findViewById(R.id.ivbButtom);
         ivTop = findViewById(R.id.ivTop);
+        btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(v -> {
+            finish(); // סוגר את העמוד הנוכחי וחוזר אחורה
+        });
         clotheList = new ArrayList<>();
 
         // Adapter עם כל הפעולות כולל מחיקה

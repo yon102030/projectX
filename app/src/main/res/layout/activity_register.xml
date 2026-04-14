@@ -120,6 +120,16 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#1976D2"/>
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="47dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/btn_circle_dark"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_media_previous"
+                app:tint="#FFFFFF" />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

@@ -14,7 +14,6 @@
         android:scaleType="centerCrop"
         android:src="@drawable/back9"/>
 
-    <!-- 🔥 כל התוכן בגלילה -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -24,100 +23,121 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="4dp">
 
-            <!-- כותרת -->
+            <!-- TOP BAR -->
+            <LinearLayout
+                android:id="@+id/topBar"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="start"
+                android:orientation="horizontal"
+                android:padding="6dp">
+
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/btn_circle_dark"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:scaleType="centerInside"
+                    app:tint="#FFFFFF"/>
+            </LinearLayout>
+
+            <!-- TITLE -->
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="בחר צבעים ללוק שלך"
-                android:textSize="26sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="#0D47A1"
                 android:gravity="center"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="6dp"/>
 
-            <!-- ================= עליונים ================= -->
-
+            <!-- עליונים -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="צבעים לעליונים"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="15sp"
                 android:textColor="#1565C0"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="8dp"/>
 
             <GridLayout
                 android:id="@+id/layoutTopColors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="4"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="4dp"/>
 
             <Button
                 android:id="@+id/btnSelectAllTopColors"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:text="בחר הכל (עליונים)"
+                android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="#1565C0"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="6dp"/>
 
             <!-- TOP 5 -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="צבעים מובילים"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:textSize="16sp"
                 android:textColor="#0D47A1"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="6dp"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerTopColors"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="50dp"
                 android:nestedScrollingEnabled="false"/>
 
-            <!-- ================= תחתונים ================= -->
-
+            <!-- תחתונים -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="צבעים לתחתונים"
                 android:textStyle="bold"
-                android:textSize="18sp"
+                android:textSize="15sp"
                 android:textColor="#1565C0"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="10dp"/>
 
             <GridLayout
                 android:id="@+id/layoutBottomColors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="4"
-                android:layout_marginTop="5dp"/>
+                android:layout_marginTop="4dp"/>
 
             <Button
                 android:id="@+id/btnSelectAllBColors"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="40dp"
                 android:text="בחר הכל (תחתונים)"
+                android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="#1565C0"
-                android:layout_marginTop="3dp"/>
+                android:layout_marginTop="6dp"/>
 
             <!-- כפתור סופי -->
             <Button
                 android:id="@+id/btnApply"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp"
-                android:backgroundTint="#0D47A1"
+                android:layout_height="42dp"
                 android:text="הצג לוק"
-                android:textColor="@android:color/white" />
+                android:textSize="14sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#0D47A1"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"/>
 
         </LinearLayout>
     </ScrollView>

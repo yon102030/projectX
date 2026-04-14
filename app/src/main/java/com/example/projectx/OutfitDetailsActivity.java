@@ -3,6 +3,7 @@ package com.example.projectx;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +13,7 @@ import com.example.projectx.util.ImageUtil;
 public class OutfitDetailsActivity extends AppCompatActivity {
 
     private ImageView ivTop, ivOuter, ivBottom;
-
+private ImageButton btnBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,7 +22,11 @@ public class OutfitDetailsActivity extends AppCompatActivity {
         ivTop = findViewById(R.id.ivSelectedTop);
         ivOuter = findViewById(R.id.ivSelectedOuter);
         ivBottom = findViewById(R.id.ivSelectedBottom);
+        btnBack = findViewById(R.id.btnBack);
 
+        btnBack.setOnClickListener(v -> {
+            finish(); // סוגר את העמוד הנוכחי וחוזר אחורה
+        });
         String top = getIntent().getStringExtra("top");
         String outer = getIntent().getStringExtra("outer");
         String bottom = getIntent().getStringExtra("bottom");

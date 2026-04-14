@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -134,10 +135,32 @@ public class userpage extends AppCompatActivity {
 
         // מעבר ל־user2Activity
         Btnuser2.setOnClickListener(v -> {
+
+            // בדיקת מגדר
+            boolean genderSelected = radioGender.getCheckedRadioButtonId() != -1;
+
+            // בדיקת עיר (position 0 = "בחר עיר")
+            boolean citySelected = spinnerCity.getSelectedItemPosition() != 0;
+
+            if (!genderSelected && !citySelected) {
+                Toast.makeText(this, "חייב לבחור מגדר ועיר", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!genderSelected) {
+                Toast.makeText(this, "חייב לבחור מגדר", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!citySelected) {
+                Toast.makeText(this, "חייב לבחור עיר", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             Intent intent = new Intent(userpage.this, colorpage.class);
 
-            // שליחת הגדרות למעבר ל־user2Activity
             boolean isMale = isMaleSelected;
+
             String tempStr = tvTemperature.getText().toString().replaceAll("[^0-9]", "");
             double temperature = tempStr.isEmpty() ? 25 : Double.parseDouble(tempStr);
 

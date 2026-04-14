@@ -167,6 +167,15 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="49dp"
+            android:layout_height="53dp"
+            android:background="@drawable/btn_circle_dark"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_media_previous"
+            app:tint="#FFFFFF"
+            tools:ignore="MissingConstraints" />
     </LinearLayout>
 
   </LinearLayout>

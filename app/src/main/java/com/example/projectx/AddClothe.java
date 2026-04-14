@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -26,7 +27,7 @@ public class AddClothe extends AppCompatActivity {
     private RadioGroup radioGenderGroup;
     private ImageView itemImage;
     private Button btnGallery, btnCamera, btnAdd;
-
+private ImageButton btnBack;
     private DatabaseService databaseService;
     private ActivityResultLauncher<Intent> cameraLauncher;
 
@@ -66,6 +67,11 @@ public class AddClothe extends AppCompatActivity {
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSeason.setAdapter(adapter);
+        btnBack = findViewById(R.id.btnBack);
+
+        btnBack.setOnClickListener(v -> {
+            finish(); // סוגר את העמוד הנוכחי וחוזר אחורה
+        });
     }
 
     private void initViews() {
