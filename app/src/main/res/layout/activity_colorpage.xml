@@ -104,7 +104,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="צבעים לתחתונים"
+                android:text="צבעים לחלק תחתון"
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:textColor="#1565C0"
@@ -121,7 +121,7 @@
                 android:id="@+id/btnSelectAllBColors"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:text="בחר הכל (תחתונים)"
+                android:text="בחר הכל"
                 android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="#1565C0"

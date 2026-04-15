@@ -16,7 +16,7 @@ public class splash extends AppCompatActivity {
     int[] images = {
             R.drawable.blacktshirt,
             R.drawable.blackzarajacket,
-            R.drawable.jordan,
+            R.drawable.bluejeans,
             R.drawable.brownzarajeans,
             R.drawable.grayzarajeans
 

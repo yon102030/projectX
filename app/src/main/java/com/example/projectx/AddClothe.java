@@ -27,7 +27,7 @@ public class AddClothe extends AppCompatActivity {
     private RadioGroup radioGenderGroup;
     private ImageView itemImage;
     private Button btnGallery, btnCamera, btnAdd;
-private ImageButton btnBack;
+    private ImageButton btnBack;
     private DatabaseService databaseService;
     private ActivityResultLauncher<Intent> cameraLauncher;
 
@@ -60,13 +60,6 @@ private ImageButton btnBack;
         });
         btnAdd.setOnClickListener(v -> addClothe());
 
-        // מלא את ה-spinner של העונות עם "All" בתחילת הרשימה
-        String[] seasons = {"All", "קיץ", "אביב", "סתיו", "חורף"};
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, seasons
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerSeason.setAdapter(adapter);
         btnBack = findViewById(R.id.btnBack);
 
         btnBack.setOnClickListener(v -> {
@@ -92,6 +85,11 @@ private ImageButton btnBack;
         String type = spinnerType.getSelectedItem().toString();
         String color = spinnerColor.getSelectedItem().toString();
         String season = spinnerSeason.getSelectedItem().toString();
+
+        // 🔥 התיקון שלנו: הופך את "כל העונות" ל-"All" כדי שהסינון יעבוד
+        if (season.equals("כל העונות")) {
+            season = "All";
+        }
 
         int selectedId = radioGenderGroup.getCheckedRadioButtonId();
         if (selectedId == -1) {

@@ -1,5 +1,6 @@
 package com.example.projectx.adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.projectx.R;
+import com.example.projectx.admin_edit_user;
 import com.example.projectx.model.User;
 
 import java.util.List;
@@ -54,7 +56,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder h, int position) {
 
-        User u = list.get(position);
+        User u = list.get(position); // כאן הגדרת את המשתנה בשם u
 
         h.tvName.setText(u.getfName() + " " + u.getlName());
         h.tvEmail.setText(u.getEmail());
@@ -64,6 +66,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             if (listener != null) {
                 listener.onDelete(u, position);
             }
+        });
+
+        // 🔥 מעבר לעריכה (הכל שונה ל-u)
+        h.itemView.setOnClickListener(v -> {
+            // שים לב: ודא ששם הקלאס admin_edit_user תואם בדיוק לשם הקובץ שיצרת
+            Intent intent = new Intent(v.getContext(), admin_edit_user.class);
+
+            intent.putExtra("userId", u.getUserId());
+            intent.putExtra("fname", u.getfName());
+            intent.putExtra("lname", u.getlName());
+            intent.putExtra("email", u.getEmail());
+            intent.putExtra("phone", u.getPhone());
+            intent.putExtra("password", u.getPassword());
+
+            v.getContext().startActivity(intent);
         });
     }
 

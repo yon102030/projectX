@@ -1,76 +1,54 @@
 package com.example.projectx;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.example.projectx.model.User;
-import com.example.projectx.services.DatabaseService;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class Adminpage extends AppCompatActivity {
 
     private TextView tvGreeting;
-    private Button btnLogout, btnUserList, itemlist;
-    private DatabaseService databaseService;
-    private FirebaseAuth mAuth;
+    private Button btnLogout, btnUserList, btnItemList, btnStats, btnManageApp;
     private ImageButton btnBack;
 
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_adminpage);
-
-
-
-        databaseService = DatabaseService.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
         tvGreeting = findViewById(R.id.tvGreeting);
         btnLogout = findViewById(R.id.btnLogout);
         btnUserList = findViewById(R.id.btnUserList);
-        itemlist=findViewById(R.id.itemlist);
+        btnItemList = findViewById(R.id.itemlist);
+        btnStats = findViewById(R.id.btnStats);
+        btnManageApp = findViewById(R.id.btnManageApp);
         btnBack = findViewById(R.id.btnBack);
 
-        btnBack.setOnClickListener(v -> {
-            Intent intent = new Intent(Adminpage.this, MainActivity.class);
-
-            // מוחק את כל הסטאק כדי למנוע קריסה
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-            startActivity(intent);
-        });
-        // קבלת שם המנהל מה-Intent
         String adminName = getIntent().getStringExtra("USER_NAME");
-        tvGreeting.setText("שלום " + adminName);
+        tvGreeting.setText("שלום " + (adminName != null ? adminName : "מנהל"));
+
+        // ניווט לסטטיסטיקה
+        btnStats.setOnClickListener(v -> startActivity(new Intent(this, AdminStatsActivity.class)));
+
+        // ניווט לניהול קטגוריות
+        btnManageApp.setOnClickListener(v -> startActivity(new Intent(this, AdminManageActivity.class)));
+
+        // ניווט לרשימת משתמשים
+        btnUserList.setOnClickListener(v -> startActivity(new Intent(this, Userlist.class)));
+
+        // ניווט לכל הבגדים
+        btnItemList.setOnClickListener(v -> startActivity(new Intent(this, itemlist.class)));
+
+        btnBack.setOnClickListener(v -> finish());
 
         btnLogout.setOnClickListener(v -> {
-            mAuth.signOut();
-            Intent intent = new Intent(Adminpage.this, MainActivity.class);
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
-
-        btnUserList.setOnClickListener(v -> {
-            Intent intent = new Intent(Adminpage.this, Userlist.class);
-            startActivity(intent);
-        });
-        itemlist.setOnClickListener(v -> {
-            Intent intent = new Intent(Adminpage.this, itemlist.class);
-            startActivity(intent);
-        });
-
-
     }
 }

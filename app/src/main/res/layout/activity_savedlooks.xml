@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="#F5F7FA">
+
     <ImageView
         android:id="@+id/backgroundImage"
         android:layout_width="match_parent"
@@ -22,13 +23,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-
-
-
-
     <TextView
         android:id="@+id/tvTitle"
-
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="49dp"
@@ -36,14 +32,13 @@
         android:text="הלוקים המועדפים"
         android:textColor="#1E3A8A"
         android:textSize="26sp"
-
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="12dp"
@@ -57,8 +52,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <!-- ☀️ כותרת קיציים -->
 
             <TextView
                 android:layout_width="match_parent"
@@ -77,7 +70,6 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
 
-            <!-- ❄️ כותרת חורפיים -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -93,17 +85,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
+
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="49dp"
                 android:layout_height="53dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
+                android:layout_gravity="center"
                 android:background="@drawable/btn_circle_dark"
                 android:scaleType="centerInside"
                 android:src="@android:drawable/ic_media_previous"
                 app:tint="#FFFFFF"
                 tools:ignore="MissingConstraints" />
-        </LinearLayout>
 
-    </ScrollView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
