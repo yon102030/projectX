@@ -56,6 +56,7 @@ public class colorpage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_colorpage);
 
+        // מושך את המגדר מהעמוד הקודם (userpage)
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
         isMale = getIntent().getBooleanExtra("IS_MALE", true);
 
@@ -67,7 +68,7 @@ public class colorpage extends AppCompatActivity {
         btnAllTop = findViewById(R.id.btnSelectAllTopColors);
 
         rvTopColors = findViewById(R.id.recyclerTopColors);
-        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack = findViewById(R.id.btnBack); // תוקנה כאן הכפילות
 
         btnBack.setOnClickListener(v -> {
             finish(); // חוזר למסך הקודם
@@ -94,9 +95,7 @@ public class colorpage extends AppCompatActivity {
         });
 
         btnAllTop.setOnClickListener(v -> {
-
             if (!isTopAllSelected) {
-
                 selectedTopColors.clear();
                 selectedTopColors.addAll(Arrays.asList(allColors));
 
@@ -108,7 +107,6 @@ public class colorpage extends AppCompatActivity {
                 Toast.makeText(this, "נבחרו כל צבעי העליונים", Toast.LENGTH_SHORT).show();
 
             } else {
-
                 selectedTopColors.clear();
 
                 for (Button b : topButtons) {
@@ -122,9 +120,7 @@ public class colorpage extends AppCompatActivity {
 
 
         btnAllB.setOnClickListener(v -> {
-
             if (!isBottomAllSelected) {
-
                 selectedBottomColors.clear();
                 selectedBottomColors.addAll(Arrays.asList(allColors));
 
@@ -136,7 +132,6 @@ public class colorpage extends AppCompatActivity {
                 Toast.makeText(this, "נבחרו כל צבעי התחתונים", Toast.LENGTH_SHORT).show();
 
             } else {
-
                 selectedBottomColors.clear();
 
                 for (Button b : bottomButtons) {
@@ -152,7 +147,6 @@ public class colorpage extends AppCompatActivity {
         populateColorBoxes(layoutBottomColors, selectedBottomColors);
 
         btnApply.setOnClickListener(v -> {
-
             // הגנה בסיסית
             if (selectedTopColors == null || selectedBottomColors == null) {
                 Toast.makeText(this, "שגיאה בטעינת צבעים", Toast.LENGTH_SHORT).show();
@@ -185,7 +179,7 @@ public class colorpage extends AppCompatActivity {
                 intent.putStringArrayListExtra("TOP_COLORS", new ArrayList<>(selectedTopColors));
                 intent.putStringArrayListExtra("BOTTOM_COLORS", new ArrayList<>(selectedBottomColors));
                 intent.putExtra("TEMPERATURE", temperature);
-                intent.putExtra("IS_MALE", isMale);
+                intent.putExtra("IS_MALE", isMale); // מעביר את המגדר הלאה ל-user2Activity
 
                 startActivity(intent);
 
@@ -197,9 +191,7 @@ public class colorpage extends AppCompatActivity {
     }
 
     private void populateColorBoxes(GridLayout layout, List<String> selectedColors) {
-
         for (String colorName : allColors) {
-
             Button colorButton = new Button(this);
             colorButton.setText(colorName);
             colorButton.setAllCaps(false);
@@ -253,14 +245,10 @@ public class colorpage extends AppCompatActivity {
             colorButton.setAlpha(0.6f);
 
             colorButton.setOnClickListener(v -> {
-
                 if (selectedColors.contains(colorName)) {
-
                     selectedColors.remove(colorName);
                     colorButton.setAlpha(0.6f);
-
                 } else {
-
                     selectedColors.add(colorName);
                     colorButton.setAlpha(1f);
 
@@ -292,7 +280,6 @@ public class colorpage extends AppCompatActivity {
     }
 
     private void loadSavedColors() {
-
         SharedPreferences prefs = getSharedPreferences("colors", MODE_PRIVATE);
 
         for (String color : allColors) {
@@ -306,7 +293,6 @@ public class colorpage extends AppCompatActivity {
     }
 
     private void updateTopColors() {
-
         topColorsList.clear();
 
         List<Map.Entry<String, Integer>> sorted =

@@ -35,7 +35,7 @@ public class user2Activity extends AppCompatActivity {
     private boolean isMale; // 🔥 חדש
 
     private List<String> topColors, bottomColors;
-private  ImageButton btnBack;
+    private ImageButton btnBack;
     private List<Clothe> filteredClothes = new ArrayList<>();
     private List<Clothe> topClothes = new ArrayList<>();
     private List<Clothe> outerClothes = new ArrayList<>();
@@ -66,18 +66,18 @@ private  ImageButton btnBack;
 
         loadClothes();
 
-
-// חזרה אחורה
+        // חזרה אחורה
         btnBack.setOnClickListener(v -> {
             finish();
         });
 
-// מעבר למסך userpage (בית בתוך האפליקציה)
-
+        // פעולות כפתורים
         btnRefresh.setOnClickListener(v -> setRandomLook());
         btnSaveLook.setOnClickListener(v -> saveLook());
+
         btnSaved.setOnClickListener(v -> {
             Intent intent = new Intent(this, savedlooks.class);
+            intent.putExtra("IS_MALE", isMale); // העברת המגדר למסך השמירות
             startActivity(intent);
         });
     }
@@ -231,12 +231,15 @@ private  ImageButton btnBack;
 
     // ================= RANDOM =================
     private void setRandomLook() {
+        Clothe selectedTop = null;
 
+        // בחירת חולצה
         if (!topClothes.isEmpty()) {
-            Clothe top = topClothes.get(random.nextInt(topClothes.size()));
-            ivTop.setImageBitmap(ImageUtil.convertFrom64base(top.getImageUrl()));
+            selectedTop = topClothes.get(random.nextInt(topClothes.size()));
+            ivTop.setImageBitmap(ImageUtil.convertFrom64base(selectedTop.getImageUrl()));
         }
 
+        // בחירת שכבה עליונה (ז'קט/מעיל)
         if (!outerClothes.isEmpty() && temperature < 20) {
             Clothe outer = outerClothes.get(random.nextInt(outerClothes.size()));
             ivOuter.setVisibility(View.VISIBLE);
@@ -245,9 +248,37 @@ private  ImageButton btnBack;
             ivOuter.setVisibility(View.GONE);
         }
 
+        // בחירת מכנס
         if (!bottomClothes.isEmpty()) {
-            Clothe bottom = bottomClothes.get(random.nextInt(bottomClothes.size()));
-            ivBottom.setImageBitmap(ImageUtil.convertFrom64base(bottom.getImageUrl()));
+            Clothe selectedBottom = null;
+
+            // בדיקת המקרה המיוחד: אם נבחר "טופ ספורט"
+            if (selectedTop != null && selectedTop.getType() != null && selectedTop.getType().equals("טופ ספורט")) {
+
+                // ניצור רשימה של מכנסי ספורט בלבד
+                List<Clothe> sportBottoms = new ArrayList<>();
+                for (Clothe b : bottomClothes) {
+                    if ("מכנס ספורט".equals(b.getType())) {
+                        sportBottoms.add(b);
+                    }
+                }
+
+                // אם יש למשתמש מכנסי ספורט במלתחה, נבחר אחד מהם באקראי
+                if (!sportBottoms.isEmpty()) {
+                    selectedBottom = sportBottoms.get(random.nextInt(sportBottoms.size()));
+                } else {
+                    // מקרה גיבוי (Fallback): אם נבחר טופ ספורט אבל אין למשתמש אף מכנס ספורט, נבחר מכנס רגיל
+                    selectedBottom = bottomClothes.get(random.nextInt(bottomClothes.size()));
+                }
+
+            } else {
+                // אם זה לא טופ ספורט, פשוט נבחר בגד תחתון רנדומלי מהרשימה המלאה
+                selectedBottom = bottomClothes.get(random.nextInt(bottomClothes.size()));
+            }
+
+            if (selectedBottom != null) {
+                ivBottom.setImageBitmap(ImageUtil.convertFrom64base(selectedBottom.getImageUrl()));
+            }
         }
     }
 
@@ -265,7 +296,8 @@ private  ImageButton btnBack;
 
         String bottom = ImageUtil.convertTo64Base(ivBottom);
 
-        Outfit outfit = new Outfit(outfitId, userId, top, outer, bottom);
+        // 🔥 הוספנו כאן את isMale לשמירה כדי שהמערכת תדע לאיזה מגדר הלוק שייך
+        Outfit outfit = new Outfit(outfitId, userId, top, outer, bottom, isMale);
 
         DatabaseService.getInstance().createNewOutfit(outfit,
                 new DatabaseService.DatabaseCallback<Void>() {
@@ -277,7 +309,9 @@ private  ImageButton btnBack;
                                 "Saved!",
                                 Toast.LENGTH_SHORT).show();
 
-                        startActivity(new Intent(user2Activity.this, savedlooks.class));
+                        Intent intent = new Intent(user2Activity.this, savedlooks.class);
+                        intent.putExtra("IS_MALE", isMale); // העברת המגדר למסך השמירות
+                        startActivity(intent);
                         finish();
                     }
 
@@ -295,7 +329,8 @@ private  ImageButton btnBack;
         return type != null && (
                 type.equals("חולצה קצרה") ||
                         type.equals("חולצה ארוכה") ||
-                        type.equals("גופייה")
+                        type.equals("גופייה") ||
+                        type.equals("טופ ספורט") // 🔥 התווסף כאן
         );
     }
 

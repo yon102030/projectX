@@ -30,8 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Locale;
 
 public class userpage extends AppCompatActivity {
 
@@ -63,7 +63,7 @@ public class userpage extends AppCompatActivity {
         spinnerCity = findViewById(R.id.spinnerCity);
         Btnuser2 = findViewById(R.id.buttonuser2);
         radioGender = findViewById(R.id.radioGender);
-        additem=findViewById(R.id.additem);
+        additem = findViewById(R.id.additem);
 
         // תאריך
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -103,7 +103,6 @@ public class userpage extends AppCompatActivity {
         cityMap.put("אלסקה", "Alaska");
         cityMap.put("דוהה", "Doha");
 
-
         ArrayList<String> cityList = new ArrayList<>();
         cityList.add("בחר עיר");
         cityList.addAll(cityMap.keySet());
@@ -133,7 +132,7 @@ public class userpage extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // מעבר ל־user2Activity
+        // מעבר ל־colorpage (שמשם עוברים ל-user2Activity)
         Btnuser2.setOnClickListener(v -> {
 
             // בדיקת מגדר
@@ -201,7 +200,6 @@ public class userpage extends AppCompatActivity {
                 runOnUiThread(() -> {
                     tvForecast.setText("תחזית: " + description);
                     tvTemperature.setText("מעלות: " + (int) temp + "°");
-
                 });
 
             } catch (Exception e) {

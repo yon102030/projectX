@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EEF2F7">
+
     <ImageView
         android:id="@+id/backgroundImage"
         android:layout_width="match_parent"
@@ -22,7 +23,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
-    <!-- רקע עליון רך -->
+
     <View
         android:id="@+id/topBar"
         android:layout_width="410dp"
@@ -32,7 +33,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- כותרת בתוך כרטיס -->
     <androidx.cardview.widget.CardView
         android:id="@+id/titleCard"
         android:layout_width="0dp"
@@ -54,6 +54,7 @@
             android:textColor="#1E88E5"
             android:gravity="center"
             android:padding="16dp"/>
+
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
@@ -66,7 +67,38 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- אזור רשימה -->
+    <LinearLayout
+        android:id="@+id/filterLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:layoutDirection="rtl"
+        app:layout_constraintTop_toBottomOf="@id/titleCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Spinner
+            android:id="@+id/spinnerTypeFilter"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:elevation="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerGenderFilter"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:elevation="4dp" />
+    </LinearLayout>
+
     <androidx.cardview.widget.CardView
         android:id="@+id/listCard"
         android:layout_width="0dp"
@@ -76,7 +108,7 @@
         app:cardCornerRadius="18dp"
         app:cardElevation="6dp"
         app:cardBackgroundColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@id/titleCard"
+        app:layout_constraintTop_toBottomOf="@id/filterLayout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">

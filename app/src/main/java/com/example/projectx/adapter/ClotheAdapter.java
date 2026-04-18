@@ -51,6 +51,13 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
         holder.textColor.setText(clothe.getColor());
         holder.textSeason.setText(clothe.getSeason());
 
+        // 🔥 הגדרת טקסט המגדר לפי הערך של isFavorite
+        if (clothe.isFavorite()) {
+            holder.textGender.setText("מגדר: גבר");
+        } else {
+            holder.textGender.setText("מגדר: אישה");
+        }
+
         holder.imageClothe.setImageBitmap(
                 ImageUtil.convertFrom64base(clothe.getImageUrl())
         );
@@ -86,7 +93,8 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
     public static class ClotheViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imageClothe;
-        TextView textType, textColor, textSeason;
+        // הוספנו את textGender להצהרת המשתנים
+        TextView textType, textColor, textSeason, textGender;
         Button btnDelete;
 
         public ClotheViewHolder(@NonNull View itemView) {
@@ -96,6 +104,10 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
             textType = itemView.findViewById(R.id.text_type);
             textColor = itemView.findViewById(R.id.text_color);
             textSeason = itemView.findViewById(R.id.text_season);
+
+            // חיבור למזהה שיצרנו בקובץ ה-XML
+            textGender = itemView.findViewById(R.id.text_gender);
+
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }

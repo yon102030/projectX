@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:padding="12dp">
 
-    <!-- תמונה -->
     <ImageView
         android:id="@+id/image_clothe"
         android:layout_width="90dp"
@@ -16,7 +15,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
-    <!-- סוג -->
     <TextView
         android:id="@+id/text_type"
         android:layout_width="0dp"
@@ -31,7 +29,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/image_clothe"/>
 
-    <!-- צבע -->
     <TextView
         android:id="@+id/text_color"
         android:layout_width="0dp"
@@ -45,7 +42,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_type"/>
 
-    <!-- עונה -->
     <TextView
         android:id="@+id/text_season"
         android:layout_width="0dp"
@@ -59,7 +55,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_color"/>
 
-    <!-- כפתור מחיקה -->
+    <TextView
+        android:id="@+id/text_gender"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/image_clothe"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_season"/>
+
     <Button
         android:id="@+id/btnDelete"
         android:layout_width="wrap_content"
@@ -73,7 +81,7 @@
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/text_color"
-        app:layout_constraintTop_toBottomOf="@id/text_season"
+        app:layout_constraintTop_toBottomOf="@id/text_gender"
         app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

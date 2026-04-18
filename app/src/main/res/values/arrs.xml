@@ -16,12 +16,10 @@
         <item>חצאית</item>
         <item>שמלה</item>
         <item>טייטס</item>
-        <item>טרנינג</item>
-        <item>חליפת ספורט</item>
+
+        <item>טופ ספורט</item>
+        <item>מכנס ספורט</item>
         <item>ווסט</item>
-        <item>עליונית</item>
-        <item>סרבל</item>
-        <item>חולצת פולו</item>
     </string-array>
 
     <string-array name="colorArr">
@@ -30,6 +28,7 @@
         <item>לבן</item>
         <item>אפור</item>
         <item>כחול</item>
+        <item>תכלת</item>
         <item>כחול כהה</item>
         <item>אדום</item>
         <item>ירוק</item>
