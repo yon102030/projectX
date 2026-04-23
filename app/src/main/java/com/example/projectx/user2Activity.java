@@ -299,29 +299,29 @@ public class user2Activity extends AppCompatActivity {
         // 🔥 הוספנו כאן את isMale לשמירה כדי שהמערכת תדע לאיזה מגדר הלוק שייך
         Outfit outfit = new Outfit(outfitId, userId, top, outer, bottom, isMale);
 
-        DatabaseService.getInstance().createNewOutfit(outfit,
-                new DatabaseService.DatabaseCallback<Void>() {
-
-                    @Override
-                    public void onCompleted(Void object) {
-
-                        Toast.makeText(user2Activity.this,
-                                "Saved!",
-                                Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(user2Activity.this, savedlooks.class);
-                        intent.putExtra("IS_MALE", isMale); // העברת המגדר למסך השמירות
-                        startActivity(intent);
-                        finish();
-                    }
-
-                    @Override
-                    public void onFailed(Exception e) {
-                        Toast.makeText(user2Activity.this,
-                                "Error saving",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+//        DatabaseService.getInstance().createNewOutfit(outfit,
+//                new DatabaseService.DatabaseCallback<Void>() {
+//
+//                    @Override
+//                    public void onCompleted(Void object) {
+//
+//                        Toast.makeText(user2Activity.this,
+//                                "Saved!",
+//                                Toast.LENGTH_SHORT).show();
+//
+//                        Intent intent = new Intent(user2Activity.this, savedlooks.class);
+//                        intent.putExtra("IS_MALE", isMale); // העברת המגדר למסך השמירות
+//                        startActivity(intent);
+//                        finish();
+//                    }
+//
+//                    @Override
+//                    public void onFailed(Exception e) {
+//                        Toast.makeText(user2Activity.this,
+//                                "Error saving",
+//                                Toast.LENGTH_SHORT).show();
+//                    }
+//                });
     }
 
     // ================= TYPES =================

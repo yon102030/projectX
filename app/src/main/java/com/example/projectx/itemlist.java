@@ -17,6 +17,7 @@ import com.example.projectx.adapter.ClotheAdapter;
 import com.example.projectx.model.Clothe;
 import com.example.projectx.services.DatabaseService;
 import com.example.projectx.util.ImageUtil;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,10 +36,19 @@ public class itemlist extends AppCompatActivity {
 
     private Spinner spinnerTypeFilter, spinnerGenderFilter;
 
+    DatabaseService databaseService;
+
+    String userId;
+    FirebaseAuth firebaseAuth;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itemlist);
+
+        databaseService=DatabaseService.getInstance();
+        firebaseAuth=FirebaseAuth.getInstance();
+        userId=firebaseAuth.getUid();
 
         // RecyclerView
         recyclerView = findViewById(R.id.recycler_view_clothes);
@@ -75,7 +85,10 @@ public class itemlist extends AppCompatActivity {
 
             @Override
             public void onDeleteClothe(Clothe clothe) {
-                DatabaseService.getInstance().deleteClothe(clothe.getItemId(),
+
+
+
+                DatabaseService.getInstance().deleteClothe(clothe.getUserId(),clothe.getItemId(),
                         new DatabaseService.DatabaseCallback<Void>() {
                             @Override
                             public void onCompleted(Void object) {
@@ -164,7 +177,9 @@ public class itemlist extends AppCompatActivity {
 
     // ================= טעינת נתונים מה־Firebase =================
     private void loadClothes() {
-        DatabaseService.getInstance().getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
+
+
+        DatabaseService.getInstance().getClotheList(userId, new DatabaseService.DatabaseCallback<List<Clothe>>() {
             @Override
             public void onCompleted(List<Clothe> clothes) {
                 if (clothes == null) {

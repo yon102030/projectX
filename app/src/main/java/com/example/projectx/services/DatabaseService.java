@@ -22,7 +22,9 @@ public class DatabaseService {
     private static final String TAG = "DatabaseService";
 
     private static final String USERS_PATH = "users",
-            CLOTHES_PATH = "clothe",
+            CLOTHES_PATH = "clotheNew",
+
+    OLD_USERS_PATH = "oldUsers",
             OUTFITS_PATH = "outfit";
 
     public interface DatabaseCallback<T> {
@@ -143,8 +145,8 @@ public class DatabaseService {
     // 🔹 CLOTHES
     // =============================
 
-    public void createNewClothe(Clothe clothe, DatabaseCallback<Void> callback) {
-        writeData(CLOTHES_PATH + "/" + clothe.getItemId(), clothe, callback);
+    public void createNewClothe(Clothe clothe,String uid , DatabaseCallback<Void> callback) {
+        writeData(CLOTHES_PATH + "/" +uid+"/" + clothe.getItemId(), clothe, callback);
     }
 
 
@@ -152,89 +154,59 @@ public class DatabaseService {
         getData(CLOTHES_PATH + "/" + id, Clothe.class, callback);
     }
 
-    public void getClotheList(DatabaseCallback<List<Clothe>> callback) {
-        getDataList(CLOTHES_PATH, Clothe.class, callback);
+    public void getClotheList(String uid, DatabaseCallback<List<Clothe>> callback) {
+        getDataList(CLOTHES_PATH+"/"+uid+"/" , Clothe.class, callback);
     }
 
     public String generateClotheId() {
         return generateNewId(CLOTHES_PATH);
     }
 
-    public void deleteClothe(String id, DatabaseCallback<Void> callback) {
-        deleteData(CLOTHES_PATH + "/" + id, callback);
+    public void deleteClothe(String uid, String  cid, DatabaseCallback<Void> callback) {
+        deleteData(CLOTHES_PATH +"/" +uid +  "/" + cid, callback);
     }
 
     //////////////////////////////////////////////////
     // 🔹 בגדים לפי משתמש
     //////////////////////////////////////////////////
     public void getUserClothes(String userId, DatabaseCallback<List<Clothe>> callback) {
-        getClotheList(new DatabaseCallback<List<Clothe>>() {
-            @Override
-            public void onCompleted(List<Clothe> clothes) {
-                List<Clothe> userClothes = new ArrayList<>();
-                for (Clothe c : clothes) {
-                    if (c != null && Objects.equals(c.getUserId(), userId)) {
-                        userClothes.add(c);
-                    }
-                }
-                callback.onCompleted(userClothes);
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                callback.onFailed(e);
-            }
-        });
+       getDataList(CLOTHES_PATH +"/" +userId , Clothe.class, callback );
     }
 
     // =============================
     // 🔹 OUTFITS
     // =============================
 
-    public void createNewOutfit(Outfit outfit, DatabaseCallback<Void> callback) {
-        writeData(OUTFITS_PATH + "/" + outfit.getOutfitId(), outfit, callback);
+    public void createNewOutfit( String userId, Outfit outfit, DatabaseCallback<Void> callback) {
+        writeData(OUTFITS_PATH + "/" +  userId+"/"+ outfit.getOutfitId(), outfit, callback);
     }
     public void deleteUser(String userId, DatabaseCallback<Void> callback) {
+
+        writeData(OLD_USERS_PATH+"/"+userId,User.class,callback);
         deleteData(USERS_PATH + "/" + userId, callback);
     }
 
 
-    public void getOutfit(String id, DatabaseCallback<Outfit> callback) {
-        getData(OUTFITS_PATH + "/" + id, Outfit.class, callback);
+    public void getOutfit(  String userId ,String id, DatabaseCallback<Outfit> callback) {
+        getData(OUTFITS_PATH + "/" + userId+"/"+id, Outfit.class, callback);
     }
 
-    public void getOutfitList(DatabaseCallback<List<Outfit>> callback) {
-        getDataList(OUTFITS_PATH, Outfit.class, callback);
+    public void getOutfitList(  String userId, DatabaseCallback<List<Outfit>> callback) {
+        getDataList(OUTFITS_PATH  +"/" + userId, Outfit.class, callback);
     }
 
     public String generateOutfitId() {
         return generateNewId(OUTFITS_PATH);
     }
 
-    public void deleteOutfit(String id, DatabaseCallback<Void> callback) {
-        deleteData(OUTFITS_PATH + "/" + id, callback);
+    public void deleteOutfit( String userId,String id, DatabaseCallback<Void> callback) {
+        deleteData(OUTFITS_PATH + "/" + userId+"/"+id, callback);
     }
 
     //////////////////////////////////////////////////
     // 🔹 אאוטפיטים לפי משתמש
     //////////////////////////////////////////////////
-    public void getUserOutfitList(String uid, DatabaseCallback<List<Outfit>> callback) {
-        getOutfitList(new DatabaseCallback<List<Outfit>>() {
-            @Override
-            public void onCompleted(List<Outfit> outfits) {
-                List<Outfit> userOutfits = new ArrayList<>();
-                for (Outfit o : outfits) {
-                    if (o != null && Objects.equals(o.getUserId(), uid)) { // ✅ השם הנכון של השדה
-                        userOutfits.add(o);
-                    }
-                }
-                callback.onCompleted(userOutfits);
-            }
-
-            @Override
-            public void onFailed(Exception e) {
-                callback.onFailed(e);
-            }
-        });
+    public void getUserOutfitList(String userId, DatabaseCallback<List<Outfit>> callback) {
+       getDataList(OUTFITS_PATH + "/" + userId, Outfit.class,callback );
     }
 }

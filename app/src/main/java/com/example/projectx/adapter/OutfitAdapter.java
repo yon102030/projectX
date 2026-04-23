@@ -80,25 +80,25 @@ public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder
 
             Outfit outfitToDelete = list.get(pos);
 
-            DatabaseService.getInstance().deleteOutfit(
-                    outfitToDelete.getOutfitId(),
-                    new DatabaseService.DatabaseCallback<Void>() {
-
-                        @Override
-                        public void onCompleted(Void result) {
-
-                            list.remove(pos);
-                            notifyItemRemoved(pos);
-
-                            Toast.makeText(context, "נמחק בהצלחה", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailed(Exception e) {
-                            Toast.makeText(context, "מחיקה נכשלה", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-            );
+//            DatabaseService.getInstance().deleteOutfit(
+//                    outfitToDelete.getOutfitId(),
+//                    new DatabaseService.DatabaseCallback<Void>() {
+//
+//                        @Override
+//                        public void onCompleted(Void result) {
+//
+//                            list.remove(pos);
+//                            notifyItemRemoved(pos);
+//
+//                            Toast.makeText(context, "נמחק בהצלחה", Toast.LENGTH_SHORT).show();
+//                        }
+//
+//                        @Override
+//                        public void onFailed(Exception e) {
+//                            Toast.makeText(context, "מחיקה נכשלה", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//            );
         });
 
         // ================= IMAGES =================
