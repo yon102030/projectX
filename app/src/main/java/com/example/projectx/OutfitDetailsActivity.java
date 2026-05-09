@@ -1,19 +1,22 @@
 package com.example.projectx;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.projectx.model.Outfit;
+import com.example.projectx.services.DatabaseService;
 import com.example.projectx.util.ImageUtil;
 
 public class OutfitDetailsActivity extends AppCompatActivity {
 
     private ImageView ivTop, ivOuter, ivBottom;
-private ImageButton btnBack;
+    private ImageButton btnBack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,36 +27,44 @@ private ImageButton btnBack;
         ivBottom = findViewById(R.id.ivSelectedBottom);
         btnBack = findViewById(R.id.btnBack);
 
-        btnBack.setOnClickListener(v -> {
-            finish(); // סוגר את העמוד הנוכחי וחוזר אחורה
-        });
-        String top = getIntent().getStringExtra("top");
-        String outer = getIntent().getStringExtra("outer");
-        String bottom = getIntent().getStringExtra("bottom");
+        btnBack.setOnClickListener(v -> finish());
 
-        // ================= SAFE TOP =================
-        if (top != null && !top.isEmpty()) {
-            Bitmap topBmp = ImageUtil.convertFrom64base(top);
-            if (topBmp != null) ivTop.setImageBitmap(topBmp);
+        String outfitId = getIntent().getStringExtra("outfitId");
+
+        if (outfitId == null) {
+            Toast.makeText(this, "Missing outfit", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
 
-        // ================= SAFE OUTER =================
-        if (outer != null && !outer.isEmpty()) {
-            Bitmap outerBmp = ImageUtil.convertFrom64base(outer);
-            if (outerBmp != null) {
-                ivOuter.setVisibility(View.VISIBLE);
-                ivOuter.setImageBitmap(outerBmp);
-            } else {
-                ivOuter.setVisibility(View.GONE);
-            }
-        } else {
-            ivOuter.setVisibility(View.GONE);
-        }
+        DatabaseService.getInstance().getOutfit(outfitId,
+                new DatabaseService.DatabaseCallback<Outfit>() {
 
-        // ================= SAFE BOTTOM =================
-        if (bottom != null && !bottom.isEmpty()) {
-            Bitmap bottomBmp = ImageUtil.convertFrom64base(bottom);
-            if (bottomBmp != null) ivBottom.setImageBitmap(bottomBmp);
-        }
+                    @Override
+                    public void onCompleted(Outfit o) {
+
+                        if (o == null) return;
+
+                        if (o.getTop() != null)
+                            ivTop.setImageBitmap(ImageUtil.convertFrom64base(o.getTop()));
+
+                        if (o.getOuter() != null && !o.getOuter().isEmpty()) {
+                            ivOuter.setVisibility(View.VISIBLE);
+                            ivOuter.setImageBitmap(ImageUtil.convertFrom64base(o.getOuter()));
+                        } else {
+                            ivOuter.setVisibility(View.GONE);
+                        }
+
+                        if (o.getBottom() != null)
+                            ivBottom.setImageBitmap(ImageUtil.convertFrom64base(o.getBottom()));
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Toast.makeText(OutfitDetailsActivity.this,
+                                "Error loading outfit",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

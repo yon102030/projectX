@@ -44,12 +44,14 @@
                 android:gravity="center"
                 android:layout_marginBottom="24dp"/>
 
+            <!-- EMAIL (לא ניתן לעריכה) -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="אימייל (לא ניתן לשינוי):"
                 android:textColor="#555555"
                 android:textStyle="bold"/>
+
             <TextView
                 android:id="@+id/tvEditEmail"
                 android:layout_width="match_parent"
@@ -87,14 +89,21 @@
                 android:padding="12dp"
                 android:layout_marginBottom="16dp"/>
 
-            <EditText
-                android:id="@+id/etEditPassword"
+            <!-- PASSWORD (לא ניתן לעריכה) -->
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:hint="סיסמה (לפחות 6 תווים)"
-                android:inputType="textPassword"
-                android:background="@drawable/card_bg"
+                android:layout_height="wrap_content"
+                android:text="סיסמה (לא ניתן לשינוי):"
+                android:textColor="#555555"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvEditPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:padding="12dp"
+                android:background="#E0E0E0"
+                android:textColor="#888888"
                 android:layout_marginBottom="24dp"/>
 
             <LinearLayout
@@ -120,6 +129,8 @@
                     android:backgroundTint="#1E88E5"
                     android:layout_marginStart="8dp"/>
             </LinearLayout>
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,8 +15,9 @@ import java.util.Map;
 
 public class admin_edit_user extends AppCompatActivity {
 
-    private EditText etEditFname, etEditLname, etEditPhone, etEditPassword;
-    private TextView tvEditEmail;
+    private EditText etEditFname, etEditLname, etEditPhone;
+    private TextView tvEditEmail, tvEditPassword;
+
     private String userId;
 
     @Override
@@ -24,60 +25,58 @@ public class admin_edit_user extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_edit_user);
 
-        // 1. קישור רכיבים מה-XML
+        // קישור רכיבים
         etEditFname = findViewById(R.id.etEditFname);
         etEditLname = findViewById(R.id.etEditLname);
         etEditPhone = findViewById(R.id.etEditPhone);
-        etEditPassword = findViewById(R.id.etEditPassword);
-        tvEditEmail = findViewById(R.id.tvEditEmail);
 
-        // 2. קבלת הנתונים מה-Intent (מהמסך הקודם)
+        tvEditEmail = findViewById(R.id.tvEditEmail);
+        tvEditPassword = findViewById(R.id.tvEditPassword);
+
+        // קבלת נתונים
         userId = getIntent().getStringExtra("userId");
+
         etEditFname.setText(getIntent().getStringExtra("fname"));
         etEditLname.setText(getIntent().getStringExtra("lname"));
         etEditPhone.setText(getIntent().getStringExtra("phone"));
-        etEditPassword.setText(getIntent().getStringExtra("password"));
-        tvEditEmail.setText(getIntent().getStringExtra("email")); // מופיע כטקסט שלא ניתן לעריכה
 
-        // 3. כפתור ביטול
+        tvEditEmail.setText(getIntent().getStringExtra("email"));
+        tvEditPassword.setText(getIntent().getStringExtra("password"));
+
+        // ביטול
         findViewById(R.id.btnCancelEdit).setOnClickListener(v -> finish());
 
-        // 4. כפתור שמירה
+        // שמירה
         findViewById(R.id.btnSaveEdit).setOnClickListener(v -> saveUserUpdates());
     }
 
     private void saveUserUpdates() {
+
         String newFname = etEditFname.getText().toString().trim();
         String newLname = etEditLname.getText().toString().trim();
         String newPhone = etEditPhone.getText().toString().trim();
-        String newPassword = etEditPassword.getText().toString().trim();
 
-        // בדיקות תקינות הקלט
-        if (newFname.isEmpty() || newLname.isEmpty() || newPhone.isEmpty() || newPassword.isEmpty()) {
+        if (newFname.isEmpty() || newLname.isEmpty() || newPhone.isEmpty()) {
             Toast.makeText(this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (newPassword.length() < 6) {
-            Toast.makeText(this, "הסיסמה חייבת להכיל לפחות 6 תווים", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // יצירת מפת העדכונים (שומרים לפי שמות המשתנים המדויקים במחלקה User)
         Map<String, Object> updates = new HashMap<>();
-        updates.put("fName", newFname);  // שים לב לאות הגדולה ב-fName לפי המודל שלך
-        updates.put("lName", newLname);  // שים לב לאות הגדולה ב-lName לפי המודל שלך
+        updates.put("fName", newFname);
+        updates.put("lName", newLname);
         updates.put("phone", newPhone);
-        updates.put("password", newPassword);
 
-        // שליחה ל-Firebase
-        FirebaseDatabase.getInstance().getReference("users").child(userId)
-                .updateChildren(updates).addOnCompleteListener(task -> {
+        FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .updateChildren(updates)
+                .addOnCompleteListener(task -> {
+
                     if (task.isSuccessful()) {
-                        Toast.makeText(admin_edit_user.this, "פרטי המשתמש עודכנו בהצלחה!", Toast.LENGTH_SHORT).show();
-                        finish(); // חזרה לרשימת המשתמשים
+                        Toast.makeText(this, "עודכן בהצלחה", Toast.LENGTH_SHORT).show();
+                        finish();
                     } else {
-                        Toast.makeText(admin_edit_user.this, "שגיאה בעדכון הנתונים", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "שגיאה בעדכון", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -35,7 +35,7 @@ public class colorpage extends AppCompatActivity {
 
     private final String[] allColors = {
             "שחור","לבן","אפור","כחול","כחול כהה","אדום","ירוק","חום",
-            "בז","צהוב","כתום","סגול","ורוד","טורקיז","זית"
+            "בז","צהוב","כתום","סגול","ורוד","טורקיז","זית","תכלת"
     };
 
     private final List<Button> topButtons = new ArrayList<>();
@@ -218,6 +218,7 @@ public class colorpage extends AppCompatActivity {
             else if (colorName.equals("ורוד")) colorValue = 0xFFE91E63;
             else if (colorName.equals("טורקיז")) colorValue = 0xFF00BCD4;
             else if (colorName.equals("זית")) colorValue = 0xFF808000;
+            else if (colorName.equals("תכלת")) colorValue = 0xFF81D4FA;
             else colorValue = 0xFF9E9E9E;
 
             android.graphics.drawable.GradientDrawable border =

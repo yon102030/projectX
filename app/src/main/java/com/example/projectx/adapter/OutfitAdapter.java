@@ -1,6 +1,5 @@
 package com.example.projectx.adapter;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.GradientDrawable;
@@ -25,10 +24,8 @@ import java.util.List;
 public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder> {
 
     private List<Outfit> list;
-    private Context context;
 
-    public OutfitAdapter(Context context, List<Outfit> list) {
-        this.context = context;
+    public OutfitAdapter(List<Outfit> list) {
         this.list = list;
     }
 
@@ -51,10 +48,8 @@ public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_outfit, parent, false);
-
         return new ViewHolder(v);
     }
 
@@ -72,62 +67,20 @@ public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder
 
         Outfit o = list.get(position);
 
-        // ================= DELETE =================
-        h.btnDelete.setOnClickListener(v -> {
-
-            int pos = h.getAdapterPosition();
-            if (pos == RecyclerView.NO_POSITION) return;
-
-            Outfit outfitToDelete = list.get(pos);
-
-//            DatabaseService.getInstance().deleteOutfit(
-//                    outfitToDelete.getOutfitId(),
-//                    new DatabaseService.DatabaseCallback<Void>() {
-//
-//                        @Override
-//                        public void onCompleted(Void result) {
-//
-//                            list.remove(pos);
-//                            notifyItemRemoved(pos);
-//
-//                            Toast.makeText(context, "נמחק בהצלחה", Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                        @Override
-//                        public void onFailed(Exception e) {
-//                            Toast.makeText(context, "מחיקה נכשלה", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//            );
-        });
-
         // ================= IMAGES =================
-        Bitmap top = safeDecode(o.getTop());
-        Bitmap bottom = safeDecode(o.getBottom());
+        h.imgTop.setImageBitmap(safeDecode(o.getTop()));
+        h.imgBottom.setImageBitmap(safeDecode(o.getBottom()));
 
-        if (top != null) h.imgTop.setImageBitmap(top);
-        else h.imgTop.setImageResource(android.R.color.darker_gray);
-
-        if (bottom != null) h.imgBottom.setImageBitmap(bottom);
-        else h.imgBottom.setImageResource(android.R.color.darker_gray);
-
-        // ================= OUTER =================
-        boolean isWinter = o.getOuter() != null && !o.getOuter().isEmpty();
-
-        if (isWinter) {
-            Bitmap outer = safeDecode(o.getOuter());
-
-            if (outer != null) {
-                h.imgOuter.setVisibility(View.VISIBLE);
-                h.imgOuter.setImageBitmap(outer);
-            } else {
-                h.imgOuter.setVisibility(View.GONE);
-            }
+        if (o.getOuter() != null && !o.getOuter().isEmpty()) {
+            h.imgOuter.setVisibility(View.VISIBLE);
+            h.imgOuter.setImageBitmap(safeDecode(o.getOuter()));
         } else {
             h.imgOuter.setVisibility(View.GONE);
         }
 
         // ================= STYLE =================
+        boolean isWinter = o.getOuter() != null && !o.getOuter().isEmpty();
+
         GradientDrawable bg = new GradientDrawable();
         bg.setCornerRadius(30f);
 
@@ -141,13 +94,38 @@ public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder
 
         h.cardRoot.setBackground(bg);
 
-        // ================= CLICK =================
-        h.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, OutfitDetailsActivity.class);
-            intent.putExtra("top", o.getTop());
-            intent.putExtra("outer", o.getOuter());
-            intent.putExtra("bottom", o.getBottom());
-            context.startActivity(intent);
+        // ================= OPEN DETAILS (FIXED) =================
+        View.OnClickListener open = v -> {
+            Intent intent = new Intent(v.getContext(), OutfitDetailsActivity.class);
+            intent.putExtra("outfitId", o.getOutfitId()); // 🔥 רק ID
+            v.getContext().startActivity(intent);
+        };
+
+        h.itemView.setOnClickListener(open);
+        h.cardRoot.setOnClickListener(open);
+
+        // ================= DELETE =================
+        h.btnDelete.setOnClickListener(v -> {
+
+            int pos = h.getAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
+
+            String id = list.get(pos).getOutfitId();
+
+            DatabaseService.getInstance().deleteOutfit(id,
+                    new DatabaseService.DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(Void object) {
+                            list.remove(pos);
+                            notifyItemRemoved(pos);
+                            Toast.makeText(v.getContext(), "נמחק", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+                            Toast.makeText(v.getContext(), "שגיאה במחיקה", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
     }
 

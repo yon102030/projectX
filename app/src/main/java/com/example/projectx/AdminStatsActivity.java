@@ -71,41 +71,41 @@ public class AdminStatsActivity extends AppCompatActivity {
         });
 
         // ספירת בגדים
-//        databaseService.getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
-//            @Override
-//            public void onCompleted(List<Clothe> clothes) {
-//                if (clothes != null) tvTotalClothes.setText("פריטים במערכת: " + clothes.size());
-//            }
-//            @Override
-//            public void onFailed(Exception e) {}
-//        });
+        databaseService.getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
+            @Override
+            public void onCompleted(List<Clothe> clothes) {
+                if (clothes != null) tvTotalClothes.setText("פריטים במערכת: " + clothes.size());
+            }
+            @Override
+            public void onFailed(Exception e) {}
+        });
 
         // ספירת אאוטפיטים לפי הלוגיקה של מסך savedlooks
-//        databaseService.getOutfitList(new DatabaseService.DatabaseCallback<List<Outfit>>() {
-//            @Override
-//            public void onCompleted(List<Outfit> outfits) {
-//                if (outfits != null) {
-//                    int summerCount = 0;
-//                    int winterCount = 0;
-//
-//                    for (Outfit outfit : outfits) {
-//                         אם יש פריט עליון (מעיל/ז'קט) -> חורף
-//                        if (outfit.getOuter() != null) {
-//                            winterCount++;
-//                        } else {
-//                             אם אין פריט עליון -> קיץ
-//                            summerCount++;
-//                        }
-//                    }
-//                    tvSeasonStats.setText("אאוטפיטים קיציים: " + summerCount + " | אאוטפיטים חורפיים: " + winterCount);
-//                }
-//            }
+        databaseService.getOutfitList(new DatabaseService.DatabaseCallback<List<Outfit>>() {
+            @Override
+            public void onCompleted(List<Outfit> outfits) {
+                if (outfits != null) {
+                    int summerCount = 0;
+                    int winterCount = 0;
 
-//            @Override
-//            public void onFailed(Exception e) {
-//                tvSeasonStats.setText("שגיאה בטעינת נתונים");
-//            }
-//        });
+                    for (Outfit outfit : outfits) {
+                        // אם יש פריט עליון (מעיל/ז'קט) -> חורף
+                        if (outfit.getOuter() != null) {
+                            winterCount++;
+                        } else {
+                            // אם אין פריט עליון -> קיץ
+                            summerCount++;
+                        }
+                    }
+                    tvSeasonStats.setText("אאוטפיטים קיציים: " + summerCount + " | אאוטפיטים חורפיים: " + winterCount);
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                tvSeasonStats.setText("שגיאה בטעינת נתונים");
+            }
+        });
     }
 
     private void loadTopColorsData() {

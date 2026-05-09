@@ -2,16 +2,11 @@ package com.example.projectx.services;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.example.projectx.model.Outfit;
 import com.example.projectx.model.Clothe;
+import com.example.projectx.model.Outfit;
 import com.example.projectx.model.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,194 +14,254 @@ import java.util.Objects;
 
 public class DatabaseService {
 
-    private static final String TAG = "DatabaseService";
+	private static final String TAG = "DatabaseService";
 
-    private static final String USERS_PATH = "users",
-            CLOTHES_PATH = "clotheNew",
+	private static final String USERS_PATH = "users";
+	private static final String CLOTHES_PATH = "clothe";
+	private static final String OUTFITS_PATH = "outfit";
 
-    OLD_USERS_PATH = "oldUsers",
-            OUTFITS_PATH = "outfit";
+	public interface DatabaseCallback<T> {
+		void onCompleted(T object);
+		void onFailed(Exception e);
+	}
 
-    public interface DatabaseCallback<T> {
-        void onCompleted(T object);
-        void onFailed(Exception e);
-    }
+	private static DatabaseService instance;
+	private final DatabaseReference databaseReference;
 
-    private static DatabaseService instance;
-    private final DatabaseReference databaseReference;
+	public DatabaseService() {
+		databaseReference = FirebaseDatabase.getInstance().getReference();
+	}
 
-    public DatabaseService() {
-        databaseReference = FirebaseDatabase.getInstance().getReference();
-    }
+	public static DatabaseService getInstance() {
+		if (instance == null) {
+			instance = new DatabaseService();
+		}
+		return instance;
+	}
 
-    public static DatabaseService getInstance() {
-        if (instance == null) {
-            instance = new DatabaseService();
-        }
-        return instance;
-    }
+	// =============================
+	// בסיס
+	// =============================
 
-    // =============================
-    // 🔹 בסיס
-    // =============================
+	private DatabaseReference readData(String path) {
+		return databaseReference.child(path);
+	}
 
-    private void writeData(String path, Object data, DatabaseCallback<Void> callback) {
-        readData(path).setValue(data, (error, ref) -> {
-            if (callback == null) return;
-            if (error != null) callback.onFailed(error.toException());
-            else callback.onCompleted(null);
-        });
-    }
+	private void writeData(String path, Object data, DatabaseCallback<Void> callback) {
+		readData(path).setValue(data, (error, ref) -> {
+			if (callback == null) return;
 
-    private void deleteData(String path, DatabaseCallback<Void> callback) {
-        readData(path).removeValue((error, ref) -> {
-            if (callback == null) return;
-            if (error != null) callback.onFailed(error.toException());
-            else callback.onCompleted(null);
-        });
-    }
+			if (error != null) {
+				callback.onFailed(error.toException());
+			} else {
+				callback.onCompleted(null);
+			}
+		});
+	}
 
+	private void deleteData(String path, DatabaseCallback<Void> callback) {
+		readData(path).removeValue((error, ref) -> {
+			if (callback == null) return;
 
-    private DatabaseReference readData(String path) {
-        return databaseReference.child(path);
-    }
+			if (error != null) {
+				callback.onFailed(error.toException());
+			} else {
+				callback.onCompleted(null);
+			}
+		});
+	}
 
-    private <T> void getData(String path, Class<T> clazz, DatabaseCallback<T> callback) {
-        readData(path).get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                callback.onFailed(task.getException());
-                return;
-            }
-            callback.onCompleted(task.getResult().getValue(clazz));
-        });
-    }
+	private <T> void getData(String path, Class<T> clazz, DatabaseCallback<T> callback) {
+		readData(path).get().addOnCompleteListener(task -> {
 
-    private <T> void getDataList(String path, Class<T> clazz, DatabaseCallback<List<T>> callback) {
-        readData(path).get().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                callback.onFailed(task.getException());
-                return;
-            }
+			if (!task.isSuccessful()) {
+				callback.onFailed(task.getException());
+				return;
+			}
 
-            List<T> list = new ArrayList<>();
-            for (DataSnapshot snap : task.getResult().getChildren()) {
-                T item = snap.getValue(clazz);
-                if (item != null) list.add(item);
-            }
+			try {
+				callback.onCompleted(task.getResult().getValue(clazz));
+			} catch (Exception e) {
+				callback.onFailed(e);
+			}
+		});
+	}
 
-            callback.onCompleted(list);
-        });
-    }
+	// 🔥 תיקון חשוב פה (מונע קריסה מנתונים ישנים)
+	private <T> void getDataList(String path, Class<T> clazz, DatabaseCallback<List<T>> callback) {
 
-    private String generateNewId(String path) {
-        return databaseReference.child(path).push().getKey();
-    }
+		readData(path).get().addOnCompleteListener(task -> {
 
-    // =============================
-    // 🔹 USERS
-    // =============================
+			if (!task.isSuccessful()) {
+				callback.onFailed(task.getException());
+				return;
+			}
 
-    public void createNewUser(User user, DatabaseCallback<String> callback) {
-        FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                .addOnCompleteListener(task -> {
+			List<T> list = new ArrayList<>();
 
-                    if (!task.isSuccessful()) {
-                        callback.onFailed(task.getException());
-                        return;
-                    }
+			for (DataSnapshot snap : task.getResult().getChildren()) {
 
-                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    user.setUserId(uid);
+				try {
 
-                    writeData(USERS_PATH + "/" + uid, user, new DatabaseCallback<Void>() {
-                        @Override
-                        public void onCompleted(Void v) {
-                            callback.onCompleted(uid);
-                        }
+					// מדלג על נתונים שבורים (String וכו')
+					if (!snap.hasChildren()) continue;
 
-                        @Override
-                        public void onFailed(Exception e) {
-                            callback.onFailed(e);
-                        }
-                    });
-                });
-    }
+					T item = snap.getValue(clazz);
 
-    public void getUser(String uid, DatabaseCallback<User> callback) {
-        getData(USERS_PATH + "/" + uid, User.class, callback);
-    }
+					if (item != null) {
+						list.add(item);
+					}
 
-    public void getUserList(DatabaseCallback<List<User>> callback) {
-        getDataList(USERS_PATH, User.class, callback);
-    }
+				} catch (Exception e) {
+					Log.e(TAG, "Bad data skipped: " + snap.getKey(), e);
+				}
+			}
 
-    // =============================
-    // 🔹 CLOTHES
-    // =============================
+			callback.onCompleted(list);
+		});
+	}
 
-    public void createNewClothe(Clothe clothe,String uid , DatabaseCallback<Void> callback) {
-        writeData(CLOTHES_PATH + "/" +uid+"/" + clothe.getItemId(), clothe, callback);
-    }
+	private String generateNewId(String path) {
+		return databaseReference.child(path).push().getKey();
+	}
 
+	// =============================
+	// USERS
+	// =============================
 
-    public void getClothe(String id, DatabaseCallback<Clothe> callback) {
-        getData(CLOTHES_PATH + "/" + id, Clothe.class, callback);
-    }
+	public void createNewUser(User user, DatabaseCallback<String> callback) {
 
-    public void getClotheList(String uid, DatabaseCallback<List<Clothe>> callback) {
-        getDataList(CLOTHES_PATH+"/"+uid+"/" , Clothe.class, callback);
-    }
+		FirebaseAuth.getInstance()
+				.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+				.addOnCompleteListener(task -> {
 
-    public String generateClotheId() {
-        return generateNewId(CLOTHES_PATH);
-    }
+					if (!task.isSuccessful()) {
+						callback.onFailed(task.getException());
+						return;
+					}
 
-    public void deleteClothe(String uid, String  cid, DatabaseCallback<Void> callback) {
-        deleteData(CLOTHES_PATH +"/" +uid +  "/" + cid, callback);
-    }
+					String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+					user.setUserId(uid);
 
-    //////////////////////////////////////////////////
-    // 🔹 בגדים לפי משתמש
-    //////////////////////////////////////////////////
-    public void getUserClothes(String userId, DatabaseCallback<List<Clothe>> callback) {
-       getDataList(CLOTHES_PATH +"/" +userId , Clothe.class, callback );
-    }
+					writeData(USERS_PATH + "/" + uid, user, new DatabaseCallback<Void>() {
+						@Override
+						public void onCompleted(Void object) {
+							callback.onCompleted(uid);
+						}
 
-    // =============================
-    // 🔹 OUTFITS
-    // =============================
+						@Override
+						public void onFailed(Exception e) {
+							callback.onFailed(e);
+						}
+					});
+				});
+	}
 
-    public void createNewOutfit( String userId, Outfit outfit, DatabaseCallback<Void> callback) {
-        writeData(OUTFITS_PATH + "/" +  userId+"/"+ outfit.getOutfitId(), outfit, callback);
-    }
-    public void deleteUser(String userId, DatabaseCallback<Void> callback) {
+	public void getUser(String uid, DatabaseCallback<User> callback) {
+		getData(USERS_PATH + "/" + uid, User.class, callback);
+	}
 
-        writeData(OLD_USERS_PATH+"/"+userId,User.class,callback);
-        deleteData(USERS_PATH + "/" + userId, callback);
-    }
+	public void getUserList(DatabaseCallback<List<User>> callback) {
+		getDataList(USERS_PATH, User.class, callback);
+	}
 
+	public void deleteUser(String userId, DatabaseCallback<Void> callback) {
+		deleteData(USERS_PATH + "/" + userId, callback);
+	}
 
-    public void getOutfit(  String userId ,String id, DatabaseCallback<Outfit> callback) {
-        getData(OUTFITS_PATH + "/" + userId+"/"+id, Outfit.class, callback);
-    }
+	// =============================
+	// CLOTHES
+	// =============================
 
-    public void getOutfitList(  String userId, DatabaseCallback<List<Outfit>> callback) {
-        getDataList(OUTFITS_PATH  +"/" + userId, Outfit.class, callback);
-    }
+	public void createNewClothe(Clothe clothe, DatabaseCallback<Void> callback) {
+		writeData(CLOTHES_PATH + "/" + clothe.getItemId(), clothe, callback);
+	}
 
-    public String generateOutfitId() {
-        return generateNewId(OUTFITS_PATH);
-    }
+	public void getClothe(String id, DatabaseCallback<Clothe> callback) {
+		getData(CLOTHES_PATH + "/" + id, Clothe.class, callback);
+	}
 
-    public void deleteOutfit( String userId,String id, DatabaseCallback<Void> callback) {
-        deleteData(OUTFITS_PATH + "/" + userId+"/"+id, callback);
-    }
+	public void getClotheList(DatabaseCallback<List<Clothe>> callback) {
+		getDataList(CLOTHES_PATH, Clothe.class, callback);
+	}
 
-    //////////////////////////////////////////////////
-    // 🔹 אאוטפיטים לפי משתמש
-    //////////////////////////////////////////////////
-    public void getUserOutfitList(String userId, DatabaseCallback<List<Outfit>> callback) {
-       getDataList(OUTFITS_PATH + "/" + userId, Outfit.class,callback );
-    }
+	public String generateClotheId() {
+		return generateNewId(CLOTHES_PATH);
+	}
+
+	public void deleteClothe(String id, DatabaseCallback<Void> callback) {
+		deleteData(CLOTHES_PATH + "/" + id, callback);
+	}
+
+	public void getUserClothes(String userId, DatabaseCallback<List<Clothe>> callback) {
+
+		getClotheList(new DatabaseCallback<List<Clothe>>() {
+			@Override
+			public void onCompleted(List<Clothe> clothes) {
+
+				List<Clothe> userClothes = new ArrayList<>();
+
+				for (Clothe c : clothes) {
+					if (c != null && Objects.equals(c.getUserId(), userId)) {
+						userClothes.add(c);
+					}
+				}
+
+				callback.onCompleted(userClothes);
+			}
+
+			@Override
+			public void onFailed(Exception e) {
+				callback.onFailed(e);
+			}
+		});
+	}
+
+	// =============================
+	// OUTFITS
+	// =============================
+
+	public void createNewOutfit(Outfit outfit, DatabaseCallback<Void> callback) {
+		writeData(OUTFITS_PATH + "/" + outfit.getOutfitId(), outfit, callback);
+	}
+
+	public void getOutfit(String id, DatabaseCallback<Outfit> callback) {
+		getData(OUTFITS_PATH + "/" + id, Outfit.class, callback);
+	}
+
+	public void getOutfitList(DatabaseCallback<List<Outfit>> callback) {
+		getDataList(OUTFITS_PATH, Outfit.class, callback);
+	}
+
+	public String generateOutfitId() {
+		return generateNewId(OUTFITS_PATH);
+	}
+
+	public void deleteOutfit(String id, DatabaseCallback<Void> callback) {
+		deleteData(OUTFITS_PATH + "/" + id, callback);
+	}
+
+	public void getUserOutfitList(String uid, DatabaseCallback<List<Outfit>> callback) {
+
+		getOutfitList(new DatabaseCallback<List<Outfit>>() {
+			@Override
+			public void onCompleted(List<Outfit> outfits) {
+
+				List<Outfit> userOutfits = new ArrayList<>();
+
+				for (Outfit o : outfits) {
+					if (o != null && Objects.equals(o.getUserId(), uid)) {
+						userOutfits.add(o);
+					}
+				}
+
+				callback.onCompleted(userOutfits);
+			}
+
+			@Override
+			public void onFailed(Exception e) {
+				callback.onFailed(e);
+			}
+		});
+	}
 }

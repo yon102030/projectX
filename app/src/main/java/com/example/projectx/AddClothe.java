@@ -33,7 +33,6 @@ public class AddClothe extends AppCompatActivity {
 
     int SELECT_PICTURE = 200;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,7 +120,7 @@ public class AddClothe extends AppCompatActivity {
                 userId
         );
 
-        databaseService.createNewClothe(clothe, userId, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.createNewClothe(clothe, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 Toast.makeText(AddClothe.this, "הפריט נוסף בהצלחה", Toast.LENGTH_SHORT).show();

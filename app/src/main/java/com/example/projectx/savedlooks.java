@@ -93,8 +93,8 @@ public class savedlooks extends AppCompatActivity {
                         }
 
                         // הגדרת המתאמים (Adapters) עם הרשימות המסוננות
-                        recyclerSummer.setAdapter(new OutfitAdapter(savedlooks.this, summerLooks));
-                        recyclerWinter.setAdapter(new OutfitAdapter(savedlooks.this, winterLooks));
+                        recyclerSummer.setAdapter(new OutfitAdapter( summerLooks));
+                        recyclerWinter.setAdapter(new OutfitAdapter( winterLooks));
                     }
 
                     @Override
