@@ -88,7 +88,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="צבעים מובילים"
+                android:text="צבעים המובילים שלך"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#0D47A1"
