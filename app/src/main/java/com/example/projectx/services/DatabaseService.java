@@ -12,19 +12,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+// מחלקה זו משמשת כ"מנהל התקשורת" מול מסד הנתונים (Firebase Realtime Database).
+// היא מרכזת את כל פעולות הקריאה, הכתיבה והמחיקה למקום אחד מסודר.
 public class DatabaseService {
 
 	private static final String TAG = "DatabaseService";
 
+	// הגדרת "נתיבים" (תיקיות) בתוך מסד הנתונים בפיירבייס
 	private static final String USERS_PATH = "users";
 	private static final String CLOTHES_PATH = "clothe";
 	private static final String OUTFITS_PATH = "outfit";
 
+	// ממשק (Callback) מותאם אישית:
+	// מכיוון שפנייה לאינטרנט לוקחת זמן, הפונקציות לא מחזירות מיד תשובה.
+	// במקום זאת, אנחנו מעבירים להן את ה-Callback הזה, וכשהתשובה מגיעה מהשרת - הוא יפעיל את onCompleted (בהצלחה) או onFailed (בכישלון).
 	public interface DatabaseCallback<T> {
 		void onCompleted(T object);
 		void onFailed(Exception e);
 	}
 
+	// יישום תבנית Singleton: מוודא שתמיד נעבוד עם אותו עותק (instance) של המחלקה בכל האפליקציה
 	private static DatabaseService instance;
 	private final DatabaseReference databaseReference;
 
@@ -40,13 +47,15 @@ public class DatabaseService {
 	}
 
 	// =============================
-	// בסיס
+	// בסיס (פעולות תשתית גנריות שמשמשות את שאר הפונקציות)
 	// =============================
 
+	// פונקציית עזר להגעה לנתיב ספציפי במסד הנתונים
 	private DatabaseReference readData(String path) {
 		return databaseReference.child(path);
 	}
 
+	// פונקציה כללית לכתיבת נתונים מכל סוג (Object) לתוך נתיב מסוים
 	private void writeData(String path, Object data, DatabaseCallback<Void> callback) {
 		readData(path).setValue(data, (error, ref) -> {
 			if (callback == null) return;
@@ -59,6 +68,7 @@ public class DatabaseService {
 		});
 	}
 
+	// פונקציה כללית למחיקת נתונים
 	private void deleteData(String path, DatabaseCallback<Void> callback) {
 		readData(path).removeValue((error, ref) -> {
 			if (callback == null) return;
@@ -71,6 +81,7 @@ public class DatabaseService {
 		});
 	}
 
+	// פונקציה גנרית (מקבלת סוג <T> כמו User.class או Clothe.class) לשליפת פריט בודד
 	private <T> void getData(String path, Class<T> clazz, DatabaseCallback<T> callback) {
 		readData(path).get().addOnCompleteListener(task -> {
 
@@ -80,6 +91,7 @@ public class DatabaseService {
 			}
 
 			try {
+				// ממיר את המידע הגולמי שחזר מפיירבייס לאובייקט מהסוג שביקשנו (למשל, אובייקט מסוג User)
 				callback.onCompleted(task.getResult().getValue(clazz));
 			} catch (Exception e) {
 				callback.onFailed(e);
@@ -87,6 +99,7 @@ public class DatabaseService {
 		});
 	}
 
+	// פונקציה חכמה למשיכת רשימה של פריטים (למשל, כל הבגדים או כל המשתמשים)
 	// 🔥 תיקון חשוב פה (מונע קריסה מנתונים ישנים)
 	private <T> void getDataList(String path, Class<T> clazz, DatabaseCallback<List<T>> callback) {
 
@@ -99,11 +112,13 @@ public class DatabaseService {
 
 			List<T> list = new ArrayList<>();
 
+			// עובר על כל הפריטים (ה"ילדים") שנמצאים תחת הנתיב שביקשנו
 			for (DataSnapshot snap : task.getResult().getChildren()) {
 
 				try {
 
-					// מדלג על נתונים שבורים (String וכו')
+					// הגנה קריטית: מדלג על נתונים שבורים או מידע ישן (כמו טקסט סתמי) שלא תואם למבנה שלנו
+					// כדי למנוע קריסה של כל האפליקציה בגלל רשומה אחת פגומה במסד הנתונים.
 					if (!snap.hasChildren()) continue;
 
 					T item = snap.getValue(clazz);
@@ -113,24 +128,28 @@ public class DatabaseService {
 					}
 
 				} catch (Exception e) {
+					// מדפיס את השגיאה ליומן (Log) אבל ממשיך לטעון את שאר הפריטים התקינים!
 					Log.e(TAG, "Bad data skipped: " + snap.getKey(), e);
 				}
 			}
 
-			callback.onCompleted(list);
+			callback.onCompleted(list); // מחזיר את הרשימה המוכנה למסך שביקש אותה
 		});
 	}
 
+	// מייצר מזהה (ID) אקראי וייחודי לגמרי דרך פיירבייס (למשל כשיוצרים בגד חדש)
 	private String generateNewId(String path) {
 		return databaseReference.child(path).push().getKey();
 	}
 
 	// =============================
-	// USERS
+	// USERS (פעולות הקשורות למשתמשים)
 	// =============================
 
+	// פונקציה מיוחדת שיוצרת משתמש חדש: היא משלבת עבודה מול 2 מערכות שונות של פיירבייס
 	public void createNewUser(User user, DatabaseCallback<String> callback) {
 
+		// 1. קודם כל, יוצרים למשתמש חשבון התחברות (במערכת ה-Authentication של פיירבייס)
 		FirebaseAuth.getInstance()
 				.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
 				.addOnCompleteListener(task -> {
@@ -140,13 +159,15 @@ public class DatabaseService {
 						return;
 					}
 
+					// אם היצירה הצליחה, שולפים את ה-ID האמיתי שפיירבייס יצר לו עכשיו
 					String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 					user.setUserId(uid);
 
+					// 2. כעת שומרים את כל פרטי המשתמש (שם, טלפון וכו') בתוך מסד הנתונים (Realtime Database)
 					writeData(USERS_PATH + "/" + uid, user, new DatabaseCallback<Void>() {
 						@Override
 						public void onCompleted(Void object) {
-							callback.onCompleted(uid);
+							callback.onCompleted(uid); // מחזירים למסך ההרשמה שהכל עבד, יחד עם ה-ID
 						}
 
 						@Override
@@ -170,7 +191,7 @@ public class DatabaseService {
 	}
 
 	// =============================
-	// CLOTHES
+	// CLOTHES (פעולות הקשורות לבגדים)
 	// =============================
 
 	public void createNewClothe(Clothe clothe, DatabaseCallback<Void> callback) {
@@ -181,6 +202,7 @@ public class DatabaseService {
 		getData(CLOTHES_PATH + "/" + id, Clothe.class, callback);
 	}
 
+	// מושכת את כלללל הבגדים שבמערכת (שימושי למסך ניהול הפריטים של ה-Admin)
 	public void getClotheList(DatabaseCallback<List<Clothe>> callback) {
 		getDataList(CLOTHES_PATH, Clothe.class, callback);
 	}
@@ -193,6 +215,8 @@ public class DatabaseService {
 		deleteData(CLOTHES_PATH + "/" + id, callback);
 	}
 
+	// פונקציה חכמה שמושכת את כל הבגדים של המערכת, אבל מסננת ומחזירה רק את הבגדים
+	// של משתמש ספציפי (לפי ה-ID שלו). זה מה שמפעיל את מחולל הלוקים.
 	public void getUserClothes(String userId, DatabaseCallback<List<Clothe>> callback) {
 
 		getClotheList(new DatabaseCallback<List<Clothe>>() {
@@ -201,13 +225,14 @@ public class DatabaseService {
 
 				List<Clothe> userClothes = new ArrayList<>();
 
+				// עוברים על כל רשימת הבגדים ומחפשים למי שייך כל בגד
 				for (Clothe c : clothes) {
 					if (c != null && Objects.equals(c.getUserId(), userId)) {
 						userClothes.add(c);
 					}
 				}
 
-				callback.onCompleted(userClothes);
+				callback.onCompleted(userClothes); // מחזירים רק את הבגדים של המשתמש הזה
 			}
 
 			@Override
@@ -218,7 +243,7 @@ public class DatabaseService {
 	}
 
 	// =============================
-	// OUTFITS
+	// OUTFITS (פעולות הקשורות ללוקים שלמים)
 	// =============================
 
 	public void createNewOutfit(Outfit outfit, DatabaseCallback<Void> callback) {
@@ -241,6 +266,8 @@ public class DatabaseService {
 		deleteData(OUTFITS_PATH + "/" + id, callback);
 	}
 
+	// עובדת באותו היגיון כמו getUserClothes - שולפת הכל ואז מסננת רק את האאוטפיטים
+	// השייכים למשתמש הספציפי שביקש לראות את "הלוקים השמורים" שלו.
 	public void getUserOutfitList(String uid, DatabaseCallback<List<Outfit>> callback) {
 
 		getOutfitList(new DatabaseCallback<List<Outfit>>() {

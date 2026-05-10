@@ -22,25 +22,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+// מחלקה זו מציגה למנהל (או למשתמש) את רשימת כל הפריטים (בגדים) במערכת,
+// ומאפשרת לסנן אותם לפי סוג ומגדר, וכן למחוק פריטים.
 public class itemlist extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ClotheAdapter adapter;
 
-    private List<Clothe> fullClotheList; // 🔥 רשימה שתשמור את כל הנתונים המקוריים
-    private List<Clothe> clotheList;     // 🔥 הרשימה המסוננת שמוצגת בפועל
+    // 🔥 טריק הסינון: שימוש בשתי רשימות!
+    // fullClotheList - שומרת תמיד את כל הנתונים שחזרו מפיירבייס (כדי שלא נצטרך למשוך אותם שוב מחדש).
+    private List<Clothe> fullClotheList;
+    // clotheList - הרשימה הזמנית שמוצגת על המסך. היא מתעדכנת בכל פעם שהמשתמש משנה את הסינון.
+    private List<Clothe> clotheList;
 
     private ImageView btnBack;
-    private ImageView ivTop, ivButtom;
+    private ImageView ivTop, ivButtom; // תמונות תצוגה מקדימה לפריט שנבחר מהרשימה
 
-    private Spinner spinnerTypeFilter, spinnerGenderFilter;
+    private Spinner spinnerTypeFilter, spinnerGenderFilter; // תפריטי הגלילה לסינון הנתונים
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itemlist);
 
-        // RecyclerView
+        // קישור הרכיבים והגדרת הרשימה כרשימה אנכית
         recyclerView = findViewById(R.id.recycler_view_clothes);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -56,9 +61,11 @@ public class itemlist extends AppCompatActivity {
         fullClotheList = new ArrayList<>();
         clotheList = new ArrayList<>();
 
-        // Adapter עם כל הפעולות כולל מחיקה
+        // יצירת המתאם (Adapter) שמקבל את רשימת הבגדים (clotheList)
+        // והגדרת ה"מאזינים" לפעולות המשתמש על הפריטים ברשימה
         adapter = new ClotheAdapter(clotheList, new ClotheAdapter.OnClotheClickListener() {
 
+            // לחיצה רגילה מציגה את הפריט בתיבת ה"חלק עליון"
             @Override
             public void onClotheClick(Clothe clothe) {
                 if(ivTop != null) {
@@ -66,6 +73,7 @@ public class itemlist extends AppCompatActivity {
                 }
             }
 
+            // לחיצה ארוכה מציגה את הפריט בתיבת ה"חלק תחתון"
             @Override
             public void onLongClotheClick(Clothe clothe) {
                 if(ivButtom != null) {
@@ -73,14 +81,19 @@ public class itemlist extends AppCompatActivity {
                 }
             }
 
+            // לחיצה על כפתור המחיקה בשורה של הפריט
             @Override
             public void onDeleteClothe(Clothe clothe) {
+                // פנייה לפיירבייס כדי למחוק את הפריט ממסד הנתונים
                 DatabaseService.getInstance().deleteClothe(clothe.getItemId(),
                         new DatabaseService.DatabaseCallback<Void>() {
                             @Override
                             public void onCompleted(Void object) {
-                                fullClotheList.remove(clothe); // מחיקה מהרשימה המלאה
-                                applyFilters(); // עדכון הרשימה המוצגת
+                                // אם המחיקה בשרת הצליחה, אנחנו מוחקים את הפריט גם מהרשימה המלאה שלנו
+                                fullClotheList.remove(clothe);
+
+                                // מפעילים מחדש את הסינון (שמעדכן גם את clotheList המוצגת)
+                                applyFilters();
                                 Toast.makeText(itemlist.this, "Clothe deleted", Toast.LENGTH_SHORT).show();
                             }
 
@@ -94,76 +107,86 @@ public class itemlist extends AppCompatActivity {
 
         recyclerView.setAdapter(adapter);
 
+        // הפעלת פונקציות העזר שממלאות את התפריטים בנתונים ומושכות את הבגדים
         setupSpinners();
         loadClothes();
     }
 
     // ================= הגדרת תפריטי הסינון =================
     private void setupSpinners() {
-        // הגדרת נתוני מגדר
+
+        // 1. הגדרת נתוני הסינון של המגדר בתוך הספינר
         String[] genderOptions = {"כל המגדרים", "גבר", "אישה"};
         ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genderOptions);
         spinnerGenderFilter.setAdapter(genderAdapter);
 
-        // הגדרת נתוני סוגי בגדים מתוך ה-XML
+        // 2. הגדרת נתוני הסינון של סוג הבגד
         List<String> typeOptions = new ArrayList<>();
         typeOptions.add("כל הסוגים");
+        // משיכת כל סוגי הבגדים (חולצה, מכנס וכו') מתוך קובץ ה-String של האפליקציה (strings.xml)
         typeOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.typeArr)));
 
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, typeOptions);
         spinnerTypeFilter.setAdapter(typeAdapter);
 
-        // מאזינים לשינוי בחירה
+        // יצירת "מאזין" אחד משותף שיופעל בכל פעם שהמשתמש משנה את אחד מהסינונים
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                applyFilters();
+                applyFilters(); // בכל בחירה חדשה - מפעילים את פונקציית הסינון מחדש
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) { }
         };
 
+        // חיבור המאזין לשני הספינרים
         spinnerGenderFilter.setOnItemSelectedListener(filterListener);
         spinnerTypeFilter.setOnItemSelectedListener(filterListener);
     }
 
-    // ================= החלת הסינון =================
+    // ================= הלוגיקה של הסינון =================
+    // הפונקציה לוקחת את הרשימה המלאה, בודקת אילו פריטים עומדים בתנאים, ושמה אותם ברשימה המוצגת
     private void applyFilters() {
         if (fullClotheList == null || fullClotheList.isEmpty()) return;
 
+        // משיכת הבחירות הנוכחיות של המשתמש משני התפריטים
         String selectedGender = spinnerGenderFilter.getSelectedItem().toString();
         String selectedType = spinnerTypeFilter.getSelectedItem().toString();
 
+        // מרוקנים את הרשימה המוצגת (clotheList) לפני שמתחילים למלא אותה מחדש בתוצאות הסינון
         clotheList.clear();
 
+        // עוברים פריט-פריט על כל הרשימה המקורית המלאה
         for (Clothe c : fullClotheList) {
 
-            // סינון מגדר (isFavorite = true משמעו גבר, false משמעו אישה)
-            boolean matchGender = true;
+            // סינון 1: מגדר. (שימוש בשדה isFavorite כי ככה זה הוגדר במסך ההוספה: true=גבר, false=אישה)
+            boolean matchGender = true; // כברירת מחדל מניחים שזה תואם (רלוונטי ל"כל המגדרים")
             if (selectedGender.equals("גבר")) {
                 matchGender = c.isFavorite();
             } else if (selectedGender.equals("אישה")) {
                 matchGender = !c.isFavorite();
             }
 
-            // סינון סוג
+            // סינון 2: סוג הפריט
             boolean matchType = true;
             if (!selectedType.equals("כל הסוגים")) {
+                // אם הסוג לא מוגדר כ"כל הסוגים", בודקים אם סוג הפריט שווה בדיוק לסוג שנבחר
                 matchType = c.getType() != null && c.getType().equals(selectedType);
             }
 
-            // אם הפריט תואם את שני הסינונים - נוסיף אותו לרשימה המוצגת
+            // התנאי הסופי: הפריט ייכנס לרשימה המוצגת אך ורק אם הוא תואם גם למגדר וגם לסוג
             if (matchGender && matchType) {
                 clotheList.add(c);
             }
         }
 
+        // מודיעים למתאם שהרשימה (clotheList) עודכנה, כדי שירענן את התצוגה הגרפית במסך
         adapter.notifyDataSetChanged();
     }
 
-    // ================= טעינת נתונים מה־Firebase =================
+    // ================= טעינת נתונים ראשונית =================
     private void loadClothes() {
+        // פנייה לפיירבייס בבקשה למשוך את כל הפריטים שיש במערכת
         DatabaseService.getInstance().getClotheList(new DatabaseService.DatabaseCallback<List<Clothe>>() {
             @Override
             public void onCompleted(List<Clothe> clothes) {
@@ -172,10 +195,12 @@ public class itemlist extends AppCompatActivity {
                     return;
                 }
 
+                // שמירת כל הנתונים שקיבלנו מהרשת לתוך הרשימה המלאה והקבועה (fullClotheList)
                 fullClotheList.clear();
-                fullClotheList.addAll(clothes); // שומרים את המידע המקורי
+                fullClotheList.addAll(clothes);
 
-                applyFilters(); // מסננים ומציגים בהתאם למה שנבחר כרגע
+                // הפעלת פונקציית הסינון (כדי שאם במקרה תפריטי הסינון כבר מכוונים על משהו, התצוגה תתיישר לפיהם)
+                applyFilters();
             }
 
             @Override

@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     tools:context=".AddClothe">
 
-    <!-- רקע -->
     <ImageView
         android:id="@+id/backgroundImage"
         android:layout_width="0dp"
@@ -23,7 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <TextView
         android:id="@+id/title_add_item"
         android:layout_width="wrap_content"
@@ -36,7 +34,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 
     <Spinner
         android:id="@+id/spinner_type"
@@ -52,7 +49,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Spinner צבע -->
     <Spinner
         android:id="@+id/spinner_color"
         android:layout_width="0dp"
@@ -67,7 +63,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Spinner עונה -->
     <Spinner
         android:id="@+id/spinner_season"
         android:layout_width="0dp"
@@ -82,7 +77,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- RadioGroup מועדף / לא מועדף אנכי -->
     <RadioGroup
         android:id="@+id/radio_gender_group"
         android:layout_width="wrap_content"
@@ -109,7 +103,6 @@
 
     </RadioGroup>
 
-
     <ImageView
         android:id="@+id/item_image"
         android:layout_width="221dp"
@@ -120,7 +113,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/radio_gender_group" />
-
 
     <LinearLayout
         android:id="@+id/image_buttons_layout"
@@ -135,7 +127,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:gravity="center">
 
-        <!-- השורה העליונה (2 כפתורים) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -164,7 +155,6 @@
 
         </LinearLayout>
 
-        <!-- הכפתור השלישי מתחת ובמרכז -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
@@ -176,7 +166,6 @@
             app:tint="#FFFFFF" />
 
     </LinearLayout>
-
 
     <Button
         android:id="@+id/button_add"

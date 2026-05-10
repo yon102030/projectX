@@ -225,19 +225,40 @@ android:background="#4FC3F7"
         app:layout_constraintTop_toBottomOf="@id/genderBox" />
 
     <Button
-android:id="@+id/buttonLogout"
-android:layout_width="200dp"
-android:layout_height="wrap_content"
-android:text="התנתקות"
-android:textColor="#FFFFFF"
-android:backgroundTint="#0277BD"
-    android:textSize="18sp"
-    android:padding="12dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    android:layout_marginBottom="32dp" />
+        android:id="@+id/btnSavedLooks"
+        android:layout_width="243dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="104dp"
+        android:layout_weight="1"
+        android:backgroundTint="#0277BD"
+        android:text="המועדפים שלי"
+        android:textColor="@android:color/white"
+        android:textSize="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/buttonuser2"
+        app:layout_constraintVertical_bias="0.4" />
 
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:backgroundTint="#0277BD"
+        android:padding="12dp"
+        android:text="התנתקות"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnSavedLooks"
+        app:layout_constraintVertical_bias="0.424" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

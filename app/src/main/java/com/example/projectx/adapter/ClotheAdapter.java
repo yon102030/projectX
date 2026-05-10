@@ -16,12 +16,15 @@ import com.example.projectx.util.ImageUtil;
 
 import java.util.List;
 
+// מחלקה זו משמשת כמתאם (Adapter) בין רשימת הבגדים בזיכרון לבין התצוגה שלהם על המסך
 public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheViewHolder> {
 
+    // ממשק חכם המגדיר 3 פעולות שונות שאפשר לעשות על כל פריט,
+    // ומאפשר למסך הראשי (itemlist) להחליט מה יקרה בכל לחיצה.
     public interface OnClotheClickListener {
-        void onClotheClick(Clothe clothe);
-        void onLongClotheClick(Clothe clothe);
-        void onDeleteClothe(Clothe clothe);
+        void onClotheClick(Clothe clothe);       // לחיצה רגילה (למשל: הצגת הבגד העליון)
+        void onLongClotheClick(Clothe clothe);   // לחיצה ארוכה (למשל: הצגת הבגד התחתון)
+        void onDeleteClothe(Clothe clothe);      // לחיצה על כפתור המחיקה
     }
 
     private List<Clothe> clotheList;
@@ -32,6 +35,7 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
         this.listener = listener;
     }
 
+    // יצירת שורה חדשה וריקה מתוך העיצוב שהגדרנו בקובץ ה-XML
     @NonNull
     @Override
     public ClotheViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -42,6 +46,7 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
         return new ClotheViewHolder(view);
     }
 
+    // הפונקציה שלוקחת את הנתונים של בגד ספציפי ו"שותלת" אותם בתוך השורה שלו
     @Override
     public void onBindViewHolder(@NonNull ClotheViewHolder holder, int position) {
 
@@ -51,33 +56,36 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
         holder.textColor.setText(clothe.getColor());
         holder.textSeason.setText(clothe.getSeason());
 
-        // 🔥 הגדרת טקסט המגדר לפי הערך של isFavorite
+        // 🔥 תרגום הלוגיקה שבנינו בעבר: המשתנה isFavorite משמש אותנו לייצוג המגדר.
+        // אם הוא true - מדובר בבגד של גבר, אחרת - בגד של אישה.
         if (clothe.isFavorite()) {
             holder.textGender.setText("מגדר: גבר");
         } else {
             holder.textGender.setText("מגדר: אישה");
         }
 
+        // המרת התמונה מפורמט טקסטואלי ארוך (Base64) ששמור בפיירבייס, לתמונה אמתית (Bitmap) שמוצגת על המסך
         holder.imageClothe.setImageBitmap(
                 ImageUtil.convertFrom64base(clothe.getImageUrl())
         );
 
-        // 🔥 לחיצה רגילה
+        // 🔥 הגדרת פעולה ללחיצה רגילה על השורה
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onClotheClick(clothe);
             }
         });
 
-        // 🔥 לחיצה ארוכה
+        // 🔥 הגדרת פעולה ללחיצה ארוכה על השורה
         holder.itemView.setOnLongClickListener(v -> {
             if (listener != null) {
                 listener.onLongClotheClick(clothe);
             }
+            // מחזירים true כדי לאותת למערכת שסיימנו לטפל בלחיצה הארוכה, ושלא תפעיל גם את הלחיצה הרגילה בטעות.
             return true;
         });
 
-        // 🔥 כפתור מחיקה
+        // 🔥 הגדרת לחיצה על כפתור פח האשפה (מחיקה)
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onDeleteClothe(clothe);
@@ -85,15 +93,17 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
         });
     }
 
+    // מחזירה כמה פריטים סך הכל יש לנו ברשימה
     @Override
     public int getItemCount() {
         return clotheList.size();
     }
 
+    // מחלקה פנימית ש"מחזיקה" את כל הרכיבים של השורה כדי שהאפליקציה לא תצטרך לחפש אותם
+    // בזיכרון מחדש בכל פעם שהמשתמש גולל את המסך (משפר ביצועים מאוד!)
     public static class ClotheViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imageClothe;
-        // הוספנו את textGender להצהרת המשתנים
         TextView textType, textColor, textSeason, textGender;
         Button btnDelete;
 
@@ -104,10 +114,7 @@ public class ClotheAdapter extends RecyclerView.Adapter<ClotheAdapter.ClotheView
             textType = itemView.findViewById(R.id.text_type);
             textColor = itemView.findViewById(R.id.text_color);
             textSeason = itemView.findViewById(R.id.text_season);
-
-            // חיבור למזהה שיצרנו בקובץ ה-XML
             textGender = itemView.findViewById(R.id.text_gender);
-
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }

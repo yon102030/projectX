@@ -17,158 +17,143 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.projectx.R;
 import com.example.projectx.model.User;
 import com.example.projectx.services.DatabaseService;
 
-
-/// Activity for registering the user
-/// This activity is used to register the user
-/// It contains fields for the user to enter their information
-/// It also contains a button to register the user
-/// When the user is registered, they are redirected to the main activity
+// מסך ההרשמה של האפליקציה: אוסף נתונים מהמשתמש, יוצר לו חשבון חדש ושומר את הפרטים.
 public class register extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "RegisterActivity";
 
     private EditText etEmail, etPassword, etFName, etLName, etPhone;
     private Button btnRegister, tvLogin;
+    private ImageButton btnBack;
+
     DatabaseService databaseService;
 
+    // הגדרת קובץ הזיכרון המקומי (כדי לשמור בו את האימייל והסיסמה בסוף ההרשמה)
     public static final String MyPREFERENCES = "MyPrefs";
-
     SharedPreferences sharedpreferences;
-    private String email,password;
-    private ImageButton btnBack;
+
+    private String email, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        /// set the layout for the activity
         setContentView(R.layout.activity_register);
+
+        // התאמת התצוגה למסכים מודרניים (כדי שהטקסט לא יוסתר מתחת לשורת המצב של הטלפון)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        databaseService=DatabaseService.getInstance();
 
+        databaseService = DatabaseService.getInstance();
         sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
 
-
-        /// get the views
+        // קישור הרכיבים מהעיצוב לקוד
         etEmail = findViewById(R.id.Email);
         etPassword = findViewById(R.id.Password);
         etFName = findViewById(R.id.Fname);
         etLName = findViewById(R.id.Lname);
         etPhone = findViewById(R.id.Phone);
         btnRegister = findViewById(R.id.btnRegister);
-        tvLogin=findViewById(R.id.tblogin);
+        tvLogin = findViewById(R.id.tblogin);
+        btnBack = findViewById(R.id.btnBack);
 
-        /// set the click listener
+        // הגדרת מאזיני הלחיצות
         btnRegister.setOnClickListener(this);
         tvLogin.setOnClickListener(this);
 
-
+        // מעבר למסך התחברות (במקרה שלמשתמש כבר יש חשבון)
         tvLogin.setOnClickListener(v -> {
             Intent intent = new Intent(register.this, Login.class);
             startActivity(intent);
         });
-        btnBack = findViewById(R.id.btnBack);
 
+        // כפתור חזרה למסך הפתיחה תוך מחיקת היסטוריית המסכים (מונע קריסות בחזרה לאחור)
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(register.this, MainActivity.class);
-
-            // מוחק את כל הסטאק כדי למנוע קריסה
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
             startActivity(intent);
         });
     }
 
+    // פונקציה שמרכזת את הטיפול בלחיצות במסך (מופעלת בזכות ה-implements למעלה)
     @Override
     public void onClick(View v) {
+
+        // אם לחצו על "הרשמה"
         if (v.getId() == btnRegister.getId()) {
             Log.d(TAG, "onClick: Register button clicked");
 
-            /// get the input from the user
-             email = etEmail.getText().toString();
-             password = etPassword.getText().toString();
+            // שאיבת כל הטקסטים שהמשתמש הקליד
+            email = etEmail.getText().toString();
+            password = etPassword.getText().toString();
             String fName = etFName.getText().toString();
             String lName = etLName.getText().toString();
             String phone = etPhone.getText().toString();
 
-
-            /// Validate input
-
+            // הערה: כאן בדרך כלל כדאי להוסיף בדיקות תקינות (Validations) כמו שעשינו במסך ההתחברות
 
             Log.d(TAG, "onClick: Registering user...");
 
-            /// Register user
+            // שליחת הנתונים לפונקציית העזר שמכינה אותם לשמירה
             registerUser(fName, lName, phone, email, password);
+
         } else if (v.getId() == tvLogin.getId()) {
-            /// Navigate back to Login Activity
-            finish();
+            finish(); // סגירת מסך ההרשמה וחזרה אחורה
         }
     }
 
-
-
-
-
-
-    /// Register the user
+    // פונקציה שמכינה את אובייקט המשתמש (User) לקראת שמירה
     private void registerUser(String fname, String lname, String phone, String email, String password) {
         Log.d(TAG, "registerUser: Registering user...");
 
-
-        /// create a new user object
+        // יצירת אובייקט חדש של משתמש.
+        // (הערה: ה-"4545" הוא רק זמני, הוא יוחלף ב-ID האמיתי של פיירבייס בהמשך. ה-false בסוף אומר שהוא לא מנהל).
         User user = new User("4545", fname, lname, phone, email, password, false);
 
-
-
-
-        /// proceed to create the user
+        // קריאה לפונקציה שמדברת בפועל עם פיירבייס
         createUserInDatabase(user);
-
     }
 
-
+    // פונקציה שפונה לשרת (DatabaseService) ויוצרת את המשתמש גם במערכת האימות וגם במסד הנתונים
     private void createUserInDatabase(User user) {
         databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<String>() {
+
+            // מה קורה אם ההרשמה עברה בהצלחה? (מקבלים חזרה את ה-ID הייחודי של המשתמש: uid)
             @Override
             public void onCompleted(String uid) {
                 Log.d(TAG, "createUserInDatabase: User created successfully");
-                /// save the user to shared preferences
+
+                // עדכון ה-ID האמיתי של המשתמש שקיבלנו מהשרת
                 user.setUserId(uid);
 
-
-
+                // 🔥 פעולה חכמה: שומרים את האימייל והסיסמה בזיכרון הטלפון
+                // ככה בפעם הבאה שהוא יגיע למסך ה-Login, השדות יתמלאו לבד!
                 SharedPreferences.Editor editor = sharedpreferences.edit();
                 editor.putString("email", email);
                 editor.putString("password", password);
                 editor.apply();
+
                 Log.d(TAG, "createUserInDatabase: Redirecting to MainActivity");
-                /// Redirect to MainActivity and clear back stack to prevent user from going back to register screen
+
+                // מעבר למסך הראשי אחרי הרשמה מוצלחת ומחיקת מסך ההרשמה מההיסטוריה (שלא יוכל לחזור אליו עם מקש "חזור")
                 Intent mainIntent = new Intent(register.this, MainActivity.class);
-                /// clear the back stack (clear history) and start the MainActivity
                 mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(mainIntent);
             }
 
+            // מה קורה אם הייתה שגיאה (למשל האימייל כבר תפוס או שאין אינטרנט)?
             @Override
             public void onFailed(Exception e) {
                 Log.e(TAG, "createUserInDatabase: Failed to create user", e);
-                /// show error message to user
+                // הקפצת הודעת שגיאה קצרה למשתמש
                 Toast.makeText(register.this, "Failed to register user", Toast.LENGTH_SHORT).show();
-                /// sign out the user if failed to register
-
             }
         });
     }
-
-
-
-
 }

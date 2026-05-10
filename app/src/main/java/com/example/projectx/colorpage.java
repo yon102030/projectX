@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// מסך זה מאפשר למשתמש לבחור צבעים מועדפים לפריטים עליונים ותחתונים.
+// בנוסף, המסך עוקב אחרי הצבעים הפופולריים ביותר שנבחרו ומציג אותם.
 public class colorpage extends AppCompatActivity {
 
     private GridLayout layoutTopColors, layoutBottomColors;
@@ -43,7 +45,7 @@ public class colorpage extends AppCompatActivity {
     private boolean isTopAllSelected = false;
     private boolean isBottomAllSelected = false;
 
-    // 🔥 TOP COLORS TRACKING
+    // משתנים למעקב אחרי הצבעים הפופולריים ביותר (סטטיסטיקה)
     private final Map<String, Integer> colorClicks = new HashMap<>();
     private final List<String> topColorsList = new ArrayList<>();
     private TopColorsAdapter topColorsAdapter;
@@ -56,32 +58,28 @@ public class colorpage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_colorpage);
 
-        // מושך את המגדר מהעמוד הקודם (userpage)
+        // משיכת המגדר והטמפרטורה מהמסך הקודם, כדי שנוכל להעביר אותם הלאה בסוף
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
         isMale = getIntent().getBooleanExtra("IS_MALE", true);
 
         layoutTopColors = findViewById(R.id.layoutTopColors);
         layoutBottomColors = findViewById(R.id.layoutBottomColors);
-
         btnApply = findViewById(R.id.btnApply);
         btnAllB = findViewById(R.id.btnSelectAllBColors);
         btnAllTop = findViewById(R.id.btnSelectAllTopColors);
-
         rvTopColors = findViewById(R.id.recyclerTopColors);
-        btnBack = findViewById(R.id.btnBack); // תוקנה כאן הכפילות
+        btnBack = findViewById(R.id.btnBack);
 
-        btnBack.setOnClickListener(v -> {
-            finish(); // חוזר למסך הקודם
-        });
+        btnBack.setOnClickListener(v -> finish());
 
+        // הגדרת הרשימה האופקית שמציגה את 5 הצבעים הפופולריים
         rvTopColors.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         );
-
         topColorsAdapter = new TopColorsAdapter(topColorsList);
         rvTopColors.setAdapter(topColorsAdapter);
 
-        // ✅ טעינת נתונים שמורים
+        // קריאה לפונקציה שטוענת את היסטוריית הלחיצות מזיכרון המכשיר
         loadSavedColors();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -94,95 +92,78 @@ public class colorpage extends AppCompatActivity {
             return insets;
         });
 
+        // כפתור "בחר הכל" לעליונים: בודק אם כבר הכל נבחר.
+        // אם לא - מוסיף את כל הצבעים ומדגיש אותם. אם כן - מנקה הכל ומעמעם את הכפתורים.
         btnAllTop.setOnClickListener(v -> {
             if (!isTopAllSelected) {
                 selectedTopColors.clear();
                 selectedTopColors.addAll(Arrays.asList(allColors));
-
                 for (Button b : topButtons) {
-                    b.setAlpha(1f);
+                    b.setAlpha(1f); // 1f = אטום לגמרי (נבחר)
                 }
-
                 isTopAllSelected = true;
                 Toast.makeText(this, "נבחרו כל צבעי העליונים", Toast.LENGTH_SHORT).show();
-
             } else {
                 selectedTopColors.clear();
-
                 for (Button b : topButtons) {
-                    b.setAlpha(0.5f);
+                    b.setAlpha(0.5f); // 0.5f = חצי שקוף (לא נבחר)
                 }
-
                 isTopAllSelected = false;
                 Toast.makeText(this, "בוטלה בחירת כל העליונים", Toast.LENGTH_SHORT).show();
             }
         });
 
-
+        // כפתור "בחר הכל" לתחתונים (אותה לוגיקה כמו בעליונים)
         btnAllB.setOnClickListener(v -> {
             if (!isBottomAllSelected) {
                 selectedBottomColors.clear();
                 selectedBottomColors.addAll(Arrays.asList(allColors));
-
                 for (Button b : bottomButtons) {
                     b.setAlpha(1f);
                 }
-
                 isBottomAllSelected = true;
                 Toast.makeText(this, "נבחרו כל צבעי התחתונים", Toast.LENGTH_SHORT).show();
-
             } else {
                 selectedBottomColors.clear();
-
                 for (Button b : bottomButtons) {
                     b.setAlpha(0.5f);
                 }
-
                 isBottomAllSelected = false;
                 Toast.makeText(this, "בוטלה בחירת כל התחתונים", Toast.LENGTH_SHORT).show();
             }
         });
 
+        // הפעלת הפונקציה החכמה שמציירת את הכפתורים על המסך (פעם אחת לעליונים ופעם לתחתונים)
         populateColorBoxes(layoutTopColors, selectedTopColors);
         populateColorBoxes(layoutBottomColors, selectedBottomColors);
 
+        // כפתור האישור והמעבר למסך הבא
         btnApply.setOnClickListener(v -> {
-            // הגנה בסיסית
-            if (selectedTopColors == null || selectedBottomColors == null) {
-                Toast.makeText(this, "שגיאה בטעינת צבעים", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             boolean topValid = selectedTopColors.size() > 0;
             boolean bottomValid = selectedBottomColors.size() > 0;
 
-            // בדיקות קלט ברורות
+            // בדיקות תקינות: אי אפשר להמשיך אם לא נבחר לפחות צבע אחד מכל סוג
             if (!topValid && !bottomValid) {
                 Toast.makeText(this, "חייב לבחור לפחות צבע לעליונים ותחתונים", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!topValid) {
                 Toast.makeText(this, "בחר לפחות צבע לעליונים", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (!bottomValid) {
                 Toast.makeText(this, "בחר לפחות צבע לתחתונים", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // מעבר לעמוד הבא רק אם הכל תקין
+            // אם הכל תקין, אורזים את כל הנתונים (צבעים, טמפרטורה ומגדר) ועוברים למסך user2Activity
             try {
                 Intent intent = new Intent(colorpage.this, user2Activity.class);
-
                 intent.putStringArrayListExtra("TOP_COLORS", new ArrayList<>(selectedTopColors));
                 intent.putStringArrayListExtra("BOTTOM_COLORS", new ArrayList<>(selectedBottomColors));
                 intent.putExtra("TEMPERATURE", temperature);
-                intent.putExtra("IS_MALE", isMale); // מעביר את המגדר הלאה ל-user2Activity
-
+                intent.putExtra("IS_MALE", isMale);
                 startActivity(intent);
-
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(this, "שגיאה במעבר לעמוד הבא", Toast.LENGTH_SHORT).show();
@@ -190,19 +171,19 @@ public class colorpage extends AppCompatActivity {
         });
     }
 
+    // פונקציה חכמה שרצה על רשימת הצבעים ומייצרת כפתור לכל צבע באופן דינמי מקוד ה-Java
     private void populateColorBoxes(GridLayout layout, List<String> selectedColors) {
         for (String colorName : allColors) {
             Button colorButton = new Button(this);
             colorButton.setText(colorName);
             colorButton.setAllCaps(false);
-
-            // 🔥 טקסט מודגש
             colorButton.setTypeface(null, android.graphics.Typeface.BOLD);
             colorButton.setTextSize(10);
             colorButton.setPadding(5,5,5,5);
 
             int colorValue;
 
+            // המרת שם הצבע מקוד טקסט לקוד צבע אמיתי
             if (colorName.equals("שחור")) colorValue = 0xFF000000;
             else if (colorName.equals("לבן")) colorValue = 0xFFFFFFFF;
             else if (colorName.equals("אפור")) colorValue = 0xFF808080;
@@ -221,20 +202,19 @@ public class colorpage extends AppCompatActivity {
             else if (colorName.equals("תכלת")) colorValue = 0xFF81D4FA;
             else colorValue = 0xFF9E9E9E;
 
+            // עיצוב הכפתור עם צבע הרקע ופינות עגולות
             android.graphics.drawable.GradientDrawable border =
                     new android.graphics.drawable.GradientDrawable();
-
             border.setColor(colorValue);
             border.setStroke(2, 0xFF000000);
             border.setCornerRadius(12f);
-
             colorButton.setBackground(border);
 
-            // 🔥 צבע טקסט חכם
+            // חישוב חכם של בהירות צבע הרקע:
+            // אם הרקע כהה (מתחת ל-128), הטקסט יהיה לבן. אם הרקע בהיר, הטקסט יהיה שחור.
             int r = (colorValue >> 16) & 0xFF;
             int g = (colorValue >> 8) & 0xFF;
             int b = colorValue & 0xFF;
-
             double brightness = (0.299 * r + 0.587 * g + 0.114 * b);
 
             if (brightness < 128) {
@@ -243,35 +223,40 @@ public class colorpage extends AppCompatActivity {
                 colorButton.setTextColor(0xFF000000);
             }
 
-            colorButton.setAlpha(0.6f);
+            colorButton.setAlpha(0.6f); // כברירת מחדל הכפתור מתחיל מעומעם (לא נבחר)
 
+            // אירוע לחיצה על כפתור של צבע מסוים
             colorButton.setOnClickListener(v -> {
                 if (selectedColors.contains(colorName)) {
+                    // אם כבר נבחר בעבר -> מסירים מהרשימה ומעמעמים את הכפתור
                     selectedColors.remove(colorName);
                     colorButton.setAlpha(0.6f);
                 } else {
+                    // אם טרם נבחר -> מוסיפים לרשימה, עושים אותו אטום (בולט)
                     selectedColors.add(colorName);
                     colorButton.setAlpha(1f);
 
+                    // עדכון הסטטיסטיקה בזיכרון המכשיר (SharedPreferences) על הפופולריות של הצבע הזה
                     SharedPreferences prefs = getSharedPreferences("colors", MODE_PRIVATE);
                     int count = prefs.getInt(colorName, 0);
                     prefs.edit().putInt(colorName, count + 1).apply();
-
                     colorClicks.put(colorName, count + 1);
 
+                    // רענון רשימת הצבעים הפופולריים המוצגת למעלה
                     updateTopColors();
                 }
             });
 
+            // הגדרת מאפייני תצוגה (רוחב, שוליים) בתוך הגריד (הטבלה)
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = 0;
             params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             params.setMargins(5, 5, 5, 5);
-
             colorButton.setLayoutParams(params);
 
             layout.addView(colorButton);
 
+            // שמירת הכפתור במערך בהתאם למיקום שלו (למעלה או למטה) לשימוש ב"בחר הכל"
             if (layout == layoutTopColors) {
                 topButtons.add(colorButton);
             } else {
@@ -280,25 +265,26 @@ public class colorpage extends AppCompatActivity {
         }
     }
 
+    // פונקציה ששואבת את כמות הלחיצות ההיסטורית מהזיכרון המקומי
     private void loadSavedColors() {
         SharedPreferences prefs = getSharedPreferences("colors", MODE_PRIVATE);
-
         for (String color : allColors) {
             int count = prefs.getInt(color, 0);
             if (count > 0) {
                 colorClicks.put(color, count);
             }
         }
-
         updateTopColors();
     }
 
+    // פונקציה שלוקחת את הסטטיסטיקה, ממיינת ומציגה את 5 הצבעים הכי פופולריים
     private void updateTopColors() {
         topColorsList.clear();
 
         List<Map.Entry<String, Integer>> sorted =
                 new ArrayList<>(colorClicks.entrySet());
 
+        // מיון מהמספר הגדול ביותר לקטן ביותר
         sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 
         int limit = Math.min(5, sorted.size());
@@ -307,6 +293,6 @@ public class colorpage extends AppCompatActivity {
             topColorsList.add(sorted.get(i).getKey());
         }
 
-        topColorsAdapter.notifyDataSetChanged();
+        topColorsAdapter.notifyDataSetChanged(); // עדכון התצוגה הגרפית
     }
 }
