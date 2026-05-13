@@ -190,6 +190,28 @@ public class DatabaseService {
 		deleteData(USERS_PATH + "/" + userId, callback);
 	}
 
+	// הפונקציה שהוספתי כדי שהצבעים יעבדו (מעדכנת נתוני משתמש קיים בצורה בטוחה)
+	public void updateUser(User user, DatabaseCallback<Void> callback) {
+		readData(USERS_PATH + "/" + user.getUserId()).runTransaction(new Transaction.Handler() {
+			@Override
+			public Transaction.Result doTransaction(MutableData currentData) {
+				currentData.setValue(user);
+				return Transaction.success(currentData);
+			}
+
+			@Override
+			public void onComplete(DatabaseError error, boolean committed, DataSnapshot currentData) {
+				if (callback != null) {
+					if (error != null) {
+						callback.onFailed(error.toException());
+					} else {
+						callback.onCompleted(null);
+					}
+				}
+			}
+		});
+	}
+
 	// =============================
 	// CLOTHES (פעולות הקשורות לבגדים)
 	// =============================

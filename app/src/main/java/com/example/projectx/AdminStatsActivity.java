@@ -1,6 +1,5 @@
 package com.example.projectx;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -29,23 +28,17 @@ public class AdminStatsActivity extends AppCompatActivity {
     private TopColorsAdapter topColorsAdapter;
     private List<String> topColorsList = new ArrayList<>();
 
-    // מילון (Map) שישמור כל צבע וכמה פעמים בחרו בו
+    // מילון גלובלי שישמור כל צבע וכמה פעמים *כל המשתמשים* בחרו בו יחד
     private Map<String, Integer> colorClicks = new HashMap<>();
-
-    private final String[] allColors = {
-            "שחור","לבן","אפור","כחול","כחול כהה","אדום","ירוק","חום",
-            "בז","צהוב","כתום","סגול","ורוד","טורקיז","זית"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_stats);
 
-        // הפעלת הפונקציות שמכינות את המסך וטוענות את הנתונים
+        // הפעלת הפונקציות שמכינות את המסך וטוענות את הנתונים מהשרת
         initViews();
         loadStats();
-        loadTopColorsData();
     }
 
     // קישור רכיבי העיצוב לקוד והגדרות ראשוניות
@@ -69,11 +62,35 @@ public class AdminStatsActivity extends AppCompatActivity {
     // פונקציה ששואבת נתונים מפיירבייס ומציגה אותם במסך
     private void loadStats() {
 
-        // 1. ספירת משתמשים: מבקשים את כל המשתמשים ומציגים את גודל הרשימה
+        // 1. ספירת משתמשים + איסוף נתוני צבעים מכל המשתמשים יחד
         databaseService.getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
             public void onCompleted(List<User> users) {
-                if (users != null) tvTotalUsers.setText("משתמשים רשומים: " + users.size());
+                if (users != null) {
+                    tvTotalUsers.setText("משתמשים רשומים: " + users.size());
+
+                    colorClicks.clear(); // איפוס מונה הצבעים הגלובלי
+
+                    // עוברים על כל משתמש במערכת
+                    for (User user : users) {
+                        Map<String, Integer> userColors = user.getColorStats();
+
+                        // אם למשתמש יש היסטוריית צבעים, נוסיף אותה לספירה הכללית
+                        if (userColors != null) {
+                            for (Map.Entry<String, Integer> entry : userColors.entrySet()) {
+                                String colorName = entry.getKey();
+                                int count = entry.getValue();
+
+                                // מוסיפים לסך הכל הקיים (או ל-0 אם זה צבע שטרם נתקלנו בו)
+                                int currentTotal = colorClicks.getOrDefault(colorName, 0);
+                                colorClicks.put(colorName, currentTotal + count);
+                            }
+                        }
+                    }
+
+                    // אחרי שסיימנו לעבור על כל המשתמשים ולאסוף את הלחיצות, מעדכנים את הרשימה
+                    updateTopColorsList();
+                }
             }
             @Override
             public void onFailed(Exception e) {}
@@ -100,7 +117,7 @@ public class AdminStatsActivity extends AppCompatActivity {
                     // עוברים על כל האאוטפיטים ובודקים:
                     for (Outfit outfit : outfits) {
                         // הלוגיקה קובעת: אם יש פריט עליון (מעיל/ז'קט) - זה אאוטפיט חורף
-                        if (outfit.getOuter() != null) {
+                        if (outfit.getOuter() != null && !outfit.getOuter().isEmpty()) {
                             winterCount++;
                         } else {
                             // אם אין פריט עליון - זה אאוטפיט קיץ
@@ -118,35 +135,17 @@ public class AdminStatsActivity extends AppCompatActivity {
         });
     }
 
-    // פונקציה שקוראת נתונים מזיכרון המכשיר המקומי (SharedPreferences)
-    // כדי לבדוק כמה פעמים המשתמשים לחצו על כל צבע
-    private void loadTopColorsData() {
-        // פותחים את קובץ ההגדרות המקומי שנקרא "colors"
-        SharedPreferences prefs = getSharedPreferences("colors", MODE_PRIVATE);
-        colorClicks.clear();
-
-        // עוברים על כל הצבעים הקיימים, ושואבים כמה לחיצות (count) נשמרו להם.
-        // אם לחצו על צבע מסוים יותר מ-0 פעמים, שומרים אותו בתוך ה"מילון" (colorClicks)
-        for (String color : allColors) {
-            int count = prefs.getInt(color, 0);
-            if (count > 0) colorClicks.put(color, count);
-        }
-
-        // אחרי שסיימנו לאסוף נתונים, מעדכנים את הרשימה במסך
-        updateTopColorsList();
-    }
-
     // פונקציה שלוקחת את נתוני הלחיצות, ממיינת אותם מהגבוה לנמוך ומציגה עד 5 מובילים
     private void updateTopColorsList() {
         topColorsList.clear();
 
-        // הופכים את ה"מילון" לרשימה שאפשר למיין
+        // הופכים את ה"מילון" (Map) לרשימה שאפשר למיין
         List<Map.Entry<String, Integer>> sorted = new ArrayList<>(colorClicks.entrySet());
 
-        // מיון הרשימה מהמספר הגדול (הכי הרבה לחיצות) למספר הקטן
+        // מיון הרשימה מהמספר הגדול (הכי הרבה לחיצות בכל המערכת) למספר הקטן
         sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 
-        // בחירה של עד 5 הצבעים הראשונים (או פחות, אם אין 5 צבעים שנלחצו)
+        // בחירה של עד 5 הצבעים הראשונים
         int limit = Math.min(5, sorted.size());
         for (int i = 0; i < limit; i++) {
             topColorsList.add(sorted.get(i).getKey()); // מוסיפים רק את שם הצבע

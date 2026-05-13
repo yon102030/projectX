@@ -1,20 +1,21 @@
 package com.example.projectx.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class User {
 
     String userId;
     String fName;
     String lName;
-
     String phone;
     String email;
     String password;
     boolean isAdmin;
-
-
-
+    Map<String, Integer> colorStats;
 
     public User() {
+        this.colorStats = new HashMap<>();
     }
 
     public User(String userId, String fName, String lName, String phone, String email, String password, boolean isAdmin) {
@@ -25,6 +26,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.isAdmin = isAdmin;
+        this.colorStats = new HashMap<>();
     }
 
     public String getUserId() {
@@ -72,7 +74,7 @@ public class User {
     }
 
     public void setAdmin(boolean admin) {
-        isAdmin = admin;
+        this.isAdmin = admin;
     }
 
     public String getPhone() {
@@ -83,6 +85,14 @@ public class User {
         this.phone = phone;
     }
 
+    public Map<String, Integer> getColorStats() {
+        return colorStats;
+    }
+
+    public void setColorStats(Map<String, Integer> colorStats) {
+        this.colorStats = colorStats;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -91,7 +101,6 @@ public class User {
                 ", lName='" + lName + '\'' +
                 ", phone='" + phone + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
                 ", isAdmin=" + isAdmin +
                 '}';
     }
