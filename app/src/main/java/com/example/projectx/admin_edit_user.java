@@ -34,7 +34,7 @@ public class admin_edit_user extends AppCompatActivity {
         tvEditEmail = findViewById(R.id.tvEditEmail);
         tvEditPassword = findViewById(R.id.tvEditPassword);
 
-        // קבלת הנתונים (שם, אימייל וכו') שהמסך הקודם "שלח" לנו, כדי להציג אותם ישר בתיבות הטקסט
+        // קבלת הנתונים שהמסך הקודם "שלח" לנו, כדי להציג אותם ישר בתיבות הטקסט
         userId = getIntent().getStringExtra("userId");
         etEditFname.setText(getIntent().getStringExtra("fname"));
         etEditLname.setText(getIntent().getStringExtra("lname"));
@@ -52,26 +52,41 @@ public class admin_edit_user extends AppCompatActivity {
     // הפונקציה שאוספת את הטקסט המעודכן ושומרת אותו בפיירבייס
     private void saveUserUpdates() {
 
-        // שאיבת הטקסט החדש שהמנהל הקליד (הפקודה trim מנקה רווחים מיותרים בהתחלה ובסוף)
+        // שאיבת הטקסט החדש שהמנהל הקליד
         String newFname = etEditFname.getText().toString().trim();
         String newLname = etEditLname.getText().toString().trim();
         String newPhone = etEditPhone.getText().toString().trim();
 
-        // בדיקה בסיסית שאף שדה לא נשאר ריק
-        if (newFname.isEmpty() || newLname.isEmpty() || newPhone.isEmpty()) {
-            Toast.makeText(this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show();
+        // 1. בדיקה בסיסית שאף שדה לא נשאר ריק
+        if (newFname.isEmpty()) {
+            etEditFname.setError("חובה להזין שם פרטי");
             return;
         }
 
-        // יצירת "מילון" (Map) שמכיל רק את השדות שאנחנו רוצים לעדכן.
-        // אנחנו עושים את זה כדי לא לדרוס בטעות מידע אחר של המשתמש (כמו סיסמה או אימייל).
+        if (newLname.isEmpty()) {
+            etEditLname.setError("חובה להזין שם משפחה");
+            return;
+        }
+
+        if (newPhone.isEmpty()) {
+            etEditPhone.setError("חובה להזין מספר טלפון");
+            return;
+        }
+
+        // 2. 🔥 בדיקת תקינות מספר הטלפון בעזרת ביטוי רגולרי (Regex)
+        // מוודא שהקלט מתחיל ב-05 ומכיל בדיוק עוד 8 ספרות (סה"כ 10 ספרות)
+        if (!newPhone.matches("^05\\d{8}$")) {
+            etEditPhone.setError("מספר טלפון לא תקין (חייב להכיל 10 ספרות ולהתחיל ב-05)");
+            return;
+        }
+
+        // יצירת "מילון" (Map) שמכיל רק את השדות שאנחנו רוצים לעדכן
         Map<String, Object> updates = new HashMap<>();
         updates.put("fName", newFname);
         updates.put("lName", newLname);
         updates.put("phone", newPhone);
 
-        // פנייה לפיירבייס: הולכים לטבלת "users", מחפשים את המשתמש לפי ה-ID שלו,
-        // ומפעילים את updateChildren שמעדכן נקודתית רק את מה ששמנו ב"מילון" (updates).
+        // פנייה לפיירבייס ועדכון נקודתי בעזרת updateChildren
         FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)

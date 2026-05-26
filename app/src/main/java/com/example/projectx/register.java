@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -90,13 +89,16 @@ public class register extends AppCompatActivity implements View.OnClickListener 
             Log.d(TAG, "onClick: Register button clicked");
 
             // שאיבת כל הטקסטים שהמשתמש הקליד
-            email = etEmail.getText().toString();
-            password = etPassword.getText().toString();
-            String fName = etFName.getText().toString();
-            String lName = etLName.getText().toString();
-            String phone = etPhone.getText().toString();
+            email = etEmail.getText().toString().trim();
+            password = etPassword.getText().toString().trim();
+            String fName = etFName.getText().toString().trim();
+            String lName = etLName.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
 
-            // הערה: כאן בדרך כלל כדאי להוסיף בדיקות תקינות (Validations) כמו שעשינו במסך ההתחברות
+            // הפעלת בדיקות תקינות קלט - אם הבדיקה נכשלה, נעצור כאן ולא נמשיך ברישום
+            if (!validateInput(fName, lName, phone, email, password)) {
+                return;
+            }
 
             Log.d(TAG, "onClick: Registering user...");
 
@@ -108,12 +110,57 @@ public class register extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
+    // פונקציה חכמה לבדיקת תקינות הקלט שהזין המשתמש
+    private boolean validateInput(String fName, String lName, String phone, String email, String password) {
+
+        if (fName.isEmpty()) {
+            etFName.setError("חובה להזין שם פרטי");
+            return false;
+        }
+
+        if (lName.isEmpty()) {
+            etLName.setError("חובה להזין שם משפחה");
+            return false;
+        }
+
+        // 🔥 בדיקת תקינות מספר הטלפון
+        if (phone.isEmpty()) {
+            etPhone.setError("חובה להזין מספר טלפון");
+            return false;
+        }
+        // בדיקה שהטלפון מכיל רק ספרות, באורך 10 בדיוק, ומתחיל ב-05
+        if (!phone.matches("^05\\d{8}$")) {
+            etPhone.setError("מספר טלפון לא תקין (חייב להכיל 10 ספרות ולהתחיל ב-05)");
+            return false;
+        }
+
+        if (email.isEmpty()) {
+            etEmail.setError("חובה להזין אימייל");
+            return false;
+        }
+        // בדיקת מבנה אימייל בסיסי
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("כתובת אימייל לא תקינה");
+            return false;
+        }
+
+        if (password.isEmpty()) {
+            etPassword.setError("חובה להזין סיסמה");
+            return false;
+        }
+        if (password.length() < 6) {
+            etPassword.setError("הסיסמה חייבת להכיל לפחות 6 תווים");
+            return false;
+        }
+
+        return true; // כל השדות תקינים!
+    }
+
     // פונקציה שמכינה את אובייקט המשתמש (User) לקראת שמירה
     private void registerUser(String fname, String lname, String phone, String email, String password) {
         Log.d(TAG, "registerUser: Registering user...");
 
         // יצירת אובייקט חדש של משתמש.
-        // (הערה: ה-"4545" הוא רק זמני, הוא יוחלף ב-ID האמיתי של פיירבייס בהמשך. ה-false בסוף אומר שהוא לא מנהל).
         User user = new User("4545", fname, lname, phone, email, password, false);
 
         // קריאה לפונקציה שמדברת בפועל עם פיירבייס
@@ -132,8 +179,7 @@ public class register extends AppCompatActivity implements View.OnClickListener 
                 // עדכון ה-ID האמיתי של המשתמש שקיבלנו מהשרת
                 user.setUserId(uid);
 
-                // 🔥 פעולה חכמה: שומרים את האימייל והסיסמה בזיכרון הטלפון
-                // ככה בפעם הבאה שהוא יגיע למסך ה-Login, השדות יתמלאו לבד!
+                // פועלה חכמה: שומרים את האימייל והסיסמה בזיכרון הטלפון
                 SharedPreferences.Editor editor = sharedpreferences.edit();
                 editor.putString("email", email);
                 editor.putString("password", password);
@@ -141,18 +187,17 @@ public class register extends AppCompatActivity implements View.OnClickListener 
 
                 Log.d(TAG, "createUserInDatabase: Redirecting to MainActivity");
 
-                // מעבר למסך הראשי אחרי הרשמה מוצלחת ומחיקת מסך ההרשמה מההיסטוריה (שלא יוכל לחזור אליו עם מקש "חזור")
+                // מעבר למסך הראשי אחרי הרשמה מוצלחת ומחיקת מסך ההרשמה מההיסטוריה
                 Intent mainIntent = new Intent(register.this, MainActivity.class);
                 mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(mainIntent);
             }
 
-            // מה קורה אם הייתה שגיאה (למשל האימייל כבר תפוס או שאין אינטרנט)?
+            // מה קורה אם הייתה שגיאה?
             @Override
             public void onFailed(Exception e) {
                 Log.e(TAG, "createUserInDatabase: Failed to create user", e);
-                // הקפצת הודעת שגיאה קצרה למשתמש
-                Toast.makeText(register.this, "Failed to register user", Toast.LENGTH_SHORT).show();
+                Toast.makeText(register.this, "ההרשמה נכשלה: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
