@@ -10,17 +10,34 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-// מסך המאפשר למנהל (Admin) לראות את רשימת הצבעים הזמינים במערכת, כולל תצוגה ויזואלית
+import com.example.projectx.model.User;
+import com.example.projectx.services.DatabaseService;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+// מסך מנהל המציג אנליטיקה: איזה צבעים הם הפופולריים ביותר בקרב כלל המשתמשים
 public class AdminManageActivity extends AppCompatActivity {
 
     private ListView lvColors;
     private ImageButton btnBack;
+    private ColorAdapter adapter;
 
-    // מערך קבוע (Hardcoded) שמכיל את כל שמות הצבעים שקיימים באפליקציה
+    // הרשימה שתוצג בפועל (עכשיו היא דינמית כדי שנוכל למיין אותה)
+    private final List<String> colorList = new ArrayList<>();
+
+    // מילון שומר את כמות הפעמים שכל צבע נבחר
+    private final Map<String, Integer> globalColorStats = new HashMap<>();
+
     private final String[] allColors = {
             "שחור","לבן","אפור","כחול","כחול כהה","אדום","ירוק","חום",
             "בז","צהוב","כתום","סגול","ורוד","טורקיז","זית","תכלת"
@@ -31,61 +48,101 @@ public class AdminManageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_manage);
 
-        // קישור הרכיבים מהעיצוב (XML) לקוד
         lvColors = findViewById(R.id.lvColors);
         btnBack = findViewById(R.id.btnBack);
 
-        // יצירת ה"מתאם" (Adapter) האישי שלנו - הוא זה שיודע לקחת את רשימת הטקסטים
-        // ולהפוך אותם לשורות מעוצבות בתוך ה-ListView
-        ColorAdapter adapter = new ColorAdapter(this, allColors);
+        // אתחול ראשוני של המילון (כל הצבעים מתחילים ב-0) והרשימה
+        colorList.addAll(Arrays.asList(allColors));
+        for (String color : allColors) {
+            globalColorStats.put(color, 0);
+        }
+
+        // חיבור האדפטר
+        adapter = new ColorAdapter(this, colorList);
         lvColors.setAdapter(adapter);
 
-        // סגירת המסך בלחיצה על חזור
+        // טעינת הנתונים מפיירבייס
+        loadGlobalStatistics();
+
         btnBack.setOnClickListener(v -> finish());
     }
 
+    // פונקציה חכמה ששואבת את הסטטיסטיקות מכל המשתמשים במסד הנתונים
+    private void loadGlobalStatistics() {
+        DatabaseService.getInstance().getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
+            @Override
+            public void onCompleted(List<User> users) {
+                if (users != null) {
+                    // מעבר על כל המשתמשים באפליקציה
+                    for (User u : users) {
+                        Map<String, Integer> userStats = u.getColorStats();
+                        if (userStats != null) {
+                            // מוסיפים את הלחיצות של המשתמש לסך הכל הגלובלי
+                            for (Map.Entry<String, Integer> entry : userStats.entrySet()) {
+                                String colorName = entry.getKey();
+                                int count = entry.getValue();
+                                globalColorStats.put(colorName, globalColorStats.getOrDefault(colorName, 0) + count);
+                            }
+                        }
+                    }
+
+                    // מיון הרשימה: מהצבע עם הכי הרבה לחיצות להכי מעט (Leaderboard)
+                    colorList.sort((c1, c2) -> Integer.compare(
+                            globalColorStats.getOrDefault(c2, 0),
+                            globalColorStats.getOrDefault(c1, 0)
+                    ));
+
+                    // רענון הרשימה במסך
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(AdminManageActivity.this, "שגיאה בטעינת נתונים", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     // ==========================================
-    // מחלקת מתאם (Adapter) פנימית ומותאמת אישית
+    // מחלקת מתאם (Adapter)
     // ==========================================
     private class ColorAdapter extends ArrayAdapter<String> {
 
-        public ColorAdapter(Context context, String[] colors) {
+        public ColorAdapter(Context context, List<String> colors) {
             super(context, R.layout.color_item_row, colors);
         }
 
-        // פונקציה זו נקראת עבור כל שורה ושורה ברשימה, ותפקידה לבנות את העיצוב שלה
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-            // "מיחזור שורות": אנדרואיד חכמה ולא בונה שורות חדשות אם אפשר למחזר שורות שנגללו מחוץ למסך.
-            // אם אין שורה ממוחזרת (null), ניצור אחת חדשה מקובץ העיצוב color_item_row
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.color_item_row, parent, false);
             }
 
-            // משיכת הרכיבים של השורה הספציפית הזו
             String colorName = getItem(position);
             TextView tvName = convertView.findViewById(R.id.tvColorName);
+            TextView tvCount = convertView.findViewById(R.id.tvColorCount); // השדה החדש
             View colorCircle = convertView.findViewById(R.id.viewColorCircle);
 
             tvName.setText(colorName);
 
-            // לוגיקה מעניינת: במקום להכין תמונה מראש לכל צבע, אנחנו "מציירים" עיגול ישירות בקוד!
-            int colorValue = getColorValue(colorName); // שליפת קוד הצבע המדויק לפי השם שלו
-            GradientDrawable shape = new GradientDrawable();
-            shape.setShape(GradientDrawable.OVAL); // הגדרת הצורה לאליפסה/עיגול
-            shape.setColor(colorValue); // צביעת העיגול בצבע המתאים
-            shape.setStroke(2, 0xFF000000); // הוספת מסגרת שחורה דקה (חשוב כדי שצבע כמו לבן לא יבלע ברקע)
+            // הצגת כמות הלחיצות (שליפה מהמילון הגלובלי)
+            int count = globalColorStats.getOrDefault(colorName, 0);
+            tvCount.setText(count + " בחירות");
 
-            // החלת העיגול שציירנו כרקע ל-View הקטן שיש לנו בשורה
+            int colorValue = getColorValue(colorName);
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.OVAL);
+            shape.setColor(colorValue);
+            shape.setStroke(2, 0xFF000000);
+
             colorCircle.setBackground(shape);
 
             return convertView;
         }
 
-        // פונקציית עזר המתרגמת את שם הצבע בעברית לקוד צבע (Hex) שהמערכת יודעת לצייר איתו
-        // לדוגמה: 0xFFFFFFFF אומר "צבע אטום לגמרי (FF) בצבע לבן (FFFFFF)"
         private int getColorValue(String name) {
             switch (name) {
                 case "שחור": return 0xFF000000;
@@ -104,8 +161,6 @@ public class AdminManageActivity extends AppCompatActivity {
                 case "טורקיז": return 0xFF00BCD4;
                 case "זית": return 0xFF808000;
                 case "תכלת": return 0xFF81D4FA;
-
-                // צבע ברירת מחדל (אפור בינוני) במקרה של תקלה או צבע לא מוכר
                 default: return 0xFF9E9E9E;
             }
         }

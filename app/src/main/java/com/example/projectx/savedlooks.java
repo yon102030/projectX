@@ -1,8 +1,10 @@
 package com.example.projectx;
 
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +28,8 @@ public class savedlooks extends AppCompatActivity {
 
     private RecyclerView recyclerSummer, recyclerWinter;
     private ImageButton btnBack;
+    private Button btnhome;
+    private Button buttonLogout;
     private TextView tvTitle;
     private boolean isMale;
 
@@ -41,6 +45,7 @@ public class savedlooks extends AppCompatActivity {
         recyclerSummer = findViewById(R.id.recyclerSummer);
         recyclerWinter = findViewById(R.id.recyclerWinter);
         btnBack = findViewById(R.id.btnBack);
+        btnhome=findViewById(R.id.btnhome);
 
         // שינוי הכותרת למעלה בהתאם למגדר שנבחר
         tvTitle = findViewById(R.id.title_saved);
@@ -49,12 +54,30 @@ public class savedlooks extends AppCompatActivity {
         }
 
         btnBack.setOnClickListener(v -> finish());
+        btnhome.setOnClickListener(v -> {
+            Intent intent = new Intent(this, userpage.class);
+            startActivity(intent);
+        });
 
         // הגדרת צורת התצוגה של הרשימות:
         // במקום רשימה רגילה (אחד מתחת לשני), אנחנו מגדירים "רשת" (Grid) עם 2 עמודות.
         recyclerSummer.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerWinter.setLayoutManager(new GridLayoutManager(this, 2));
+        buttonLogout = findViewById(R.id.buttonLogout);
 
+        buttonLogout.setOnClickListener(v -> {
+            // 1. התנתקות מהשרת של Firebase
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. יצירת Intent כדי לחזור למסך ההתחברות (MainActivity)
+            Intent intent = new Intent(savedlooks.this, MainActivity.class);
+
+            // 3. הוספת דגלים כדי לנקות את היסטוריית המסכים (כדי שהמשתמש לא יוכל ללחוץ "חזור" ולהיכנס חזרה)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+            finish(); // סגירת המסך הנוכחי
+        });
         // יצירת "חוקי ריווח" אישיים: מגדירים כמה רווח יהיה בין כל תמונה לתמונה בגריד,
         // כדי שהאאוטפיטים לא יהיו דבוקים אחד לשני וייראו אסתטיים.
         RecyclerView.ItemDecoration spacing = new RecyclerView.ItemDecoration() {

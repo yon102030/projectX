@@ -100,13 +100,30 @@ public class colorpage extends AppCompatActivity {
 
     private void handleSelectAll(List<Button> buttons, List<String> selectedList, boolean isTop) {
         boolean alreadyAll = isTop ? isTopAllSelected : isBottomAllSelected;
-        selectedList.clear();
+
         if (!alreadyAll) {
-            selectedList.addAll(Arrays.asList(allColors));
+            // המשתמש לחץ על "בחר הכל"
+            for (String color : allColors) {
+                // נוסיף לספירה רק צבעים שעדיין לא נבחרו (כדי לא לספור פעמיים צבע שהוא כבר לחץ עליו)
+                if (!selectedList.contains(color)) {
+                    selectedList.add(color);
+                    // הוספה לסטטיסטיקה
+                    colorClicks.put(color, colorClicks.getOrDefault(color, 0) + 1);
+                }
+            }
+            // הופכים את כל הכפתורים לבולטים
             for (Button b : buttons) b.setAlpha(1f);
+
         } else {
+            // המשתמש לחץ שוב כדי לבטל את בחירת הכל
+            selectedList.clear();
             for (Button b : buttons) b.setAlpha(0.6f);
         }
+
+
+        updateTopColors();
+
+        // עדכון המצב
         if (isTop) isTopAllSelected = !isTopAllSelected;
         else isBottomAllSelected = !isBottomAllSelected;
     }

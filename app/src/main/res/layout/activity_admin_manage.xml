@@ -22,7 +22,7 @@
         android:id="@+id/tvManageTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=" צבעי המערכת"
+        android:text="דו״ח צבעים"
         android:textSize="28sp"
         android:textColor="#005EB4"
         android:textStyle="bold"

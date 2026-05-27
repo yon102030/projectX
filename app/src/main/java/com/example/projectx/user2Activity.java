@@ -26,7 +26,7 @@ import java.util.Random;
 public class user2Activity extends AppCompatActivity {
 
     private ImageView ivTop, ivOuter, ivBottom;
-    private Button btnRefresh, btnSaveLook, btnSaved;
+    private Button btnRefresh, btnSaveLook, btnSaved,btnhome;
 
     private LinearLayout rowTop, rowBottom;
 
@@ -60,6 +60,7 @@ public class user2Activity extends AppCompatActivity {
         btnSaveLook = findViewById(R.id.btnSaveLook);
         btnSaved = findViewById(R.id.btnSavedLooks);
         btnBack = findViewById(R.id.btnBack);
+        btnhome=findViewById(R.id.btnhome);
 
         // משיכת כל הנתונים שהעברנו מהמסך הקודם (טמפרטורה, מגדר, ורשימות הצבעים לעליונים ותחתונים)
         temperature = getIntent().getDoubleExtra("TEMPERATURE", 20);
@@ -82,6 +83,10 @@ public class user2Activity extends AppCompatActivity {
         btnSaved.setOnClickListener(v -> {
             Intent intent = new Intent(this, savedlooks.class);
             intent.putExtra("IS_MALE", isMale);
+            startActivity(intent);
+        });
+        btnhome.setOnClickListener(v -> {
+            Intent intent = new Intent(this, userpage.class);
             startActivity(intent);
         });
     }

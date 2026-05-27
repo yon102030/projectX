@@ -130,13 +130,31 @@
             android:scaleType="centerCrop"/>
 
         <!-- כפתור -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:weightSum="7">
         <Button
             android:id="@+id/btnRefresh"
             android:layout_width="250dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="ריענון הלוק"
+            android:layout_marginStart="9dp"
             android:backgroundTint="#34343E"
             android:textColor="#FFFFFF"/>
+        <Button
+            android:id="@+id/btnhome"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="6"
+            android:text="למסך הבית"
+            android:layout_marginStart="9dp"
+            android:backgroundTint="#34343E"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
