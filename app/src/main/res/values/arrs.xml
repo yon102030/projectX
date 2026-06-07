@@ -14,12 +14,10 @@
         <item>מכנסיים קצרים</item>
         <item>גינס</item>
         <item>חצאית</item>
-        <item>שמלה</item>
         <item>טייטס</item>
-
         <item>טופ ספורט</item>
         <item>מכנס ספורט</item>
-        <item>ווסט</item>
+
     </string-array>
 
     <string-array name="colorArr">

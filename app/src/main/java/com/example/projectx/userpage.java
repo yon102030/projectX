@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -54,6 +55,7 @@ public class userpage extends AppCompatActivity {
 
     private Map<String, String> cityMap;
     private boolean isMaleSelected = true;
+    private SharedPreferences prefs;
 
     private static final int LOCATION_PERMISSION_CODE = 100;
 
@@ -85,8 +87,15 @@ public class userpage extends AppCompatActivity {
 
         String userName = getIntent().getStringExtra("USER_NAME");
         tvHelloUser.setText((userName != null && !userName.isEmpty()) ? "שלום " + userName : "שלום משתמש");
+        prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        isMaleSelected = prefs.getBoolean("IS_MALE", true);
+        if (isMaleSelected) radioGender.check(R.id.radioMale);
+        else radioGender.check(R.id.radioFemale);
 
-        radioGender.setOnCheckedChangeListener((group, checkedId) -> isMaleSelected = (checkedId == R.id.radioMale));
+        radioGender.setOnCheckedChangeListener((group, checkedId) -> {
+            isMaleSelected = (checkedId == R.id.radioMale);
+            prefs.edit().putBoolean("IS_MALE", isMaleSelected).apply();
+        });
 
         additem.setOnClickListener(v -> {
             Intent intent = new Intent(userpage.this, AddClothe.class);
@@ -123,6 +132,7 @@ public class userpage extends AppCompatActivity {
         cityMap.put("אורנג’סטאד", "Oranjestad");
         cityMap.put("אלסקה", "Alaska");
         cityMap.put("דוהה", "Doha");
+        cityMap.put("קינגסטון", "Kingston");
 
         ArrayList<String> cityList = new ArrayList<>();
         cityList.add("בחר עיר");
@@ -204,86 +214,90 @@ public class userpage extends AppCompatActivity {
 
     // 3. שליפת המיקום מהמכשיר
     // 3. שליפת המיקום מהמכשיר (עם גיבוי אם חסר שם עיר)
+    @SuppressLint("MissingPermission")
     private void fetchDeviceLocation() {
-        try {
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
 
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null) {
-                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
+        // שימוש בעדכון חד פעמי כדי לקבל מיקום טרי מה-GPS
+        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new android.location.LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                try {
+                    Geocoder geocoder = new Geocoder(userpage.this, Locale.getDefault());
+                    List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 
-            if (location != null) {
-                // שימוש בשפת ברירת המחדל כדי לקלוט גם אם ה-GPS מחזיר עברית
-                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address addr = addresses.get(0);
 
-                if (addresses != null && !addresses.isEmpty()) {
-                    // מנסים לשלוף קודם כל את שם העיר
-                    String detectedCity = addresses.get(0).getLocality();
+                        // מנסים לשלוף שם עיר (Locality)
+                        String detectedCity = addr.getLocality();
+                        // מנסים לשלוף שם אזור/עיר מחוז (SubAdminArea)
+                        String area = addr.getSubAdminArea();
 
-                    // אם אין עיר מוגדרת (לפעמים קורה באימולטור), נשלוף את המחוז
-                    if (detectedCity == null) {
-                        detectedCity = addresses.get(0).getSubAdminArea();
+                        // לוג לבדיקה (תוכל לראות ב-Logcat מה גוגל מצא)
+                        android.util.Log.d("LocationDebug", "Detected Locality: " + detectedCity + ", Area: " + area);
+
+                        // המנגנון החכם: אם Locality הוא שכונה או ריק, נשתמש ב-Area
+                        // נבדוק גם אם ה-Locality מכיל מילים לא רלוונטיות
+                        if (detectedCity == null || detectedCity.length() < 2 || detectedCity.contains("Ganim")) {
+                            detectedCity = area;
+                        }
+
+                        if (detectedCity != null) {
+                            matchCityToSpinner(detectedCity);
+                        }
                     }
-
-                    if (detectedCity != null) {
-                        matchCityToSpinner(detectedCity);
-                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }, null);
     }
 
     // 4. התאמה חכמה לספינר - בודקת אוטומטית לפי המילון שיצרנו!
     private void matchCityToSpinner(String detectedCity) {
         String lowerDetected = detectedCity.toLowerCase().trim();
-        String matchedHebrewCity = null;
 
-        // עוברים על מילון הערים שלנו ובודקים התאמות
-        for (Map.Entry<String, String> entry : cityMap.entrySet()) {
-            String hebrewName = entry.getKey(); // למשל "ראשון לציון"
-            String englishName = entry.getValue().toLowerCase().replace("-", " "); // למשל "tel aviv"
-            String firstWordEnglish = englishName.split(" ")[0]; // חותך רק ל-"tel" או "rishon"
+        // נשתמש ב-GPS כשם המטרה הראשי
+        final String targetCity = findBestMatch(lowerDetected);
 
-            // בודקים אם המיקום מה-GPS מכיל את השם בעברית או את המילה הראשונה באנגלית
-            if (lowerDetected.contains(firstWordEnglish) || lowerDetected.contains(hebrewName)) {
-                matchedHebrewCity = hebrewName;
-                break;
-            }
-
-            // גיבוי למקרים ספציפיים שגוגל מאיית מוזר:
-            if (lowerDetected.contains("ziyyon") && hebrewName.equals("ראשון לציון")) matchedHebrewCity = hebrewName;
-            if (lowerDetected.contains("yafo") && hebrewName.equals("תל אביב")) matchedHebrewCity = hebrewName;
-            if (lowerDetected.contains("sheva") && hebrewName.equals("באר שבע")) matchedHebrewCity = hebrewName;
-            if (lowerDetected.contains("mountain view")) matchedHebrewCity = "ראשון לציון";
-        }
-
-        if (matchedHebrewCity != null) {
-            // מצאנו עיר! עכשיו נסמן אותה בספינר
+        spinnerCity.post(() -> {
+            boolean found = false;
             for (int i = 0; i < spinnerCity.getCount(); i++) {
-                if (spinnerCity.getItemAtPosition(i).toString().equals(matchedHebrewCity)) {
-                    final int finalI = i;
-                    final String finalCity = matchedHebrewCity;
-                    runOnUiThread(() -> {
-                        spinnerCity.setSelection(finalI);
-                        Toast.makeText(userpage.this, "המיקום עבר אוטומטית ל: " + finalCity, Toast.LENGTH_SHORT).show();
-                    });
-                    return; // סיימנו בהצלחה!
+                // בדיקה אם שם העיר מה-GPS מופיע בספינר
+                if (spinnerCity.getItemAtPosition(i).toString().equals(targetCity)) {
+                    spinnerCity.setSelection(i);
+                    Toast.makeText(userpage.this, "הספינר עודכן ל: " + targetCity, Toast.LENGTH_SHORT).show();
+                    found = true;
+                    break;
                 }
             }
-        }
+            if (!found) {
+                Toast.makeText(userpage.this, "העיר " + targetCity + " לא נמצאה בספינר", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        // אם אחרי כל זה הוא עדיין לא מצא - נקפיץ הודעה שתגיד לנו בדיוק איזה שם החיישן זרק
-        final String rawCity = detectedCity;
-        runOnUiThread(() -> Toast.makeText(userpage.this, "נמצא מיקום: '" + rawCity + "' אבל הוא לא ברשימה.", Toast.LENGTH_LONG).show());
+    // פונקציית עזר שמתרגמת את ה-GPS לערים שלך
+    private String findBestMatch(String gpsCity) {
+        String city = gpsCity.toLowerCase();
+
+        // בוא נבדוק את הערכים במילון שלך אחד אחד (גם עברית וגם אנגלית)
+        for (Map.Entry<String, String> entry : cityMap.entrySet()) {
+            String hebrewName = entry.getKey().toLowerCase();
+            String englishName = entry.getValue().toLowerCase();
+
+            // האם ה-GPS אמר משהו שדומה לעברית או לאנגלית של העיר?
+            if (city.contains(hebrewName) || city.contains(englishName) ||
+                    englishName.contains(city) || hebrewName.contains(city)) {
+                return entry.getKey(); // מחזיר את השם בעברית (המפתח בספינר)
+            }
+        }
+        return "בחר עיר"; // ברירת מחדל
     }
 
     // קריאה לשרת מזג האוויר

@@ -3,26 +3,26 @@ package com.example.projectx;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class splash extends AppCompatActivity {
 
-    ImageView logo;
-    Handler handler = new Handler();
+    private ImageView logo;
 
-    // 👈 כאן מוסיפים את כל התמונות שיתחלפו
-    int[] images = {
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private final int[] images = {
             R.drawable.blacktshirt,
             R.drawable.blackzarajacket,
             R.drawable.bluejeans,
             R.drawable.brownzarajeans,
             R.drawable.grayzarajeans
-
     };
 
-    int index = 0;
+    private int index = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,25 +31,43 @@ public class splash extends AppCompatActivity {
 
         logo = findViewById(R.id.logo);
 
-        // תמונה ראשונה
         logo.setImageResource(images[0]);
+        logo.setAlpha(1f);
 
-        // החלפת תמונה כל 800ms
-        handler.postDelayed(changeImage, 500);
+        handler.postDelayed(changeImage, 1000);
 
-        // מעבר למסך הראשי אחרי 3 שניות
         handler.postDelayed(() -> {
             startActivity(new Intent(splash.this, MainActivity.class));
             finish();
-        }, 3000);
+        }, 4000);
     }
 
-    Runnable changeImage = new Runnable() {
+    private final Runnable changeImage = new Runnable() {
         @Override
         public void run() {
+
             index = (index + 1) % images.length;
-            logo.setImageResource(images[index]);
-            handler.postDelayed(this, 800);
+
+            logo.animate()
+                    .alpha(0f)
+                    .setDuration(250)
+                    .withEndAction(() -> {
+                        logo.setImageResource(images[index]);
+
+                        logo.animate()
+                                .alpha(1f)
+                                .setDuration(250)
+                                .start();
+                    })
+                    .start();
+
+            handler.postDelayed(this, 900);
         }
     };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+    }
 }
