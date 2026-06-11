@@ -65,7 +65,7 @@ public class OutfitAdapter extends RecyclerView.Adapter<OutfitAdapter.ViewHolder
         }
     }
 
-    // כאן קורה כל הקסם - חיבור הנתונים של הלוק הספציפי לכרטיסייה שלו במסך
+    // חיבור הנתונים של הלוק הספציפי לכרטיסייה שלו במסך
     @Override
     public void onBindViewHolder(ViewHolder h, int position) {
 

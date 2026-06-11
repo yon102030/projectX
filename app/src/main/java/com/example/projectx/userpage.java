@@ -66,6 +66,9 @@ public class userpage extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_userpage);
 
+        // אתחול הגדרות שמורות של המשתמש
+        prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -82,26 +85,32 @@ public class userpage extends AppCompatActivity {
         additem = findViewById(R.id.additem);
         btnSaved = findViewById(R.id.btnSavedLooks);
 
+        // הצגת תאריך נוכחי
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         tvDate.setText("תאריך: " + sdf.format(new Date()));
 
+        // קבלת שם משתמש מהמסך הקודם
         String userName = getIntent().getStringExtra("USER_NAME");
         tvHelloUser.setText((userName != null && !userName.isEmpty()) ? "שלום " + userName : "שלום משתמש");
-        prefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+
+        // טעינת הגדרת מגדר מהזיכרון המקומי
         isMaleSelected = prefs.getBoolean("IS_MALE", true);
         if (isMaleSelected) radioGender.check(R.id.radioMale);
         else radioGender.check(R.id.radioFemale);
 
+        // שמירת בחירת המגדר ל-SharedPreferences
         radioGender.setOnCheckedChangeListener((group, checkedId) -> {
             isMaleSelected = (checkedId == R.id.radioMale);
             prefs.edit().putBoolean("IS_MALE", isMaleSelected).apply();
         });
 
+        // כפתור למעבר למסך הוספת בגד
         additem.setOnClickListener(v -> {
             Intent intent = new Intent(userpage.this, AddClothe.class);
             startActivity(intent);
         });
 
+        // כפתור למעבר למסך לוקים שמורים
         btnSaved.setOnClickListener(v -> {
             if (radioGender.getCheckedRadioButtonId() == -1) {
                 Toast.makeText(this, "אנא בחר גבר/אישה לפני המעבר ללוקים שמורים", Toast.LENGTH_SHORT).show();
@@ -112,6 +121,7 @@ public class userpage extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // הגדרת רשימת הערים במילון (קישור שם עברי לשם אנגלי עבור ה-API)
         cityMap = new LinkedHashMap<>();
         cityMap.put("תל אביב", "Tel-Aviv");
         cityMap.put("ירושלים", "Jerusalem");
@@ -142,9 +152,14 @@ public class userpage extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCity.setAdapter(adapter);
 
+        // שמירה וטעינה של עיר בספינר
+        int savedPos = prefs.getInt("CITY_POS", 0);
+        spinnerCity.setSelection(savedPos);
+
         spinnerCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                prefs.edit().putInt("CITY_POS", position).apply();
                 if (position == 0) return;
                 String cityEng = cityMap.get(parent.getItemAtPosition(position));
                 getWeather(cityEng);
@@ -153,9 +168,10 @@ public class userpage extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // בדיקת מיקום בטעינת המסך
+        // בדיקת הרשאות מיקום והפעלת זיהוי עיר אוטומטי
         checkLocationPermissionAndSetCity();
 
+        // כפתור התנתקות
         findViewById(R.id.buttonLogout).setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(userpage.this, MainActivity.class);
@@ -163,6 +179,7 @@ public class userpage extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // כפתור למעבר למסך התאמת צבעים (כולל העברת נתונים)
         Btnuser2.setOnClickListener(v -> {
             boolean genderSelected = radioGender.getCheckedRadioButtonId() != -1;
             boolean citySelected = spinnerCity.getSelectedItemPosition() != 0;
@@ -190,7 +207,7 @@ public class userpage extends AppCompatActivity {
         });
     }
 
-    // 1. בודק הרשאות GPS
+    // פעולה לבדיקת הרשאות גישה ל-GPS של המכשיר
     private void checkLocationPermissionAndSetCity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_CODE);
@@ -199,7 +216,7 @@ public class userpage extends AppCompatActivity {
         }
     }
 
-    // 2. תופס את תשובת המשתמש להרשאה
+    // תגובה לבקשת ההרשאה מהמשתמש
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -212,8 +229,7 @@ public class userpage extends AppCompatActivity {
         }
     }
 
-    // 3. שליפת המיקום מהמכשיר
-    // 3. שליפת המיקום מהמכשיר (עם גיבוי אם חסר שם עיר)
+    // פעולה לשליפת מיקום המכשיר בפועל (חשובה מאוד לדיוק המיקום)
     @SuppressLint("MissingPermission")
     private void fetchDeviceLocation() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -222,30 +238,19 @@ public class userpage extends AppCompatActivity {
             return;
         }
 
-        // שימוש בעדכון חד פעמי כדי לקבל מיקום טרי מה-GPS
+        // שימוש בעדכון מיקום חד-פעמי לקבלת קואורדינטות טריות
         locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new android.location.LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 try {
+                    // שימוש ב-Geocoder לתרגום קואורדינטות לשם עיר
                     Geocoder geocoder = new Geocoder(userpage.this, Locale.getDefault());
                     List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
 
                     if (addresses != null && !addresses.isEmpty()) {
                         Address addr = addresses.get(0);
-
-                        // מנסים לשלוף שם עיר (Locality)
                         String detectedCity = addr.getLocality();
-                        // מנסים לשלוף שם אזור/עיר מחוז (SubAdminArea)
                         String area = addr.getSubAdminArea();
-
-                        // לוג לבדיקה (תוכל לראות ב-Logcat מה גוגל מצא)
-                        android.util.Log.d("LocationDebug", "Detected Locality: " + detectedCity + ", Area: " + area);
-
-                        // המנגנון החכם: אם Locality הוא שכונה או ריק, נשתמש ב-Area
-                        // נבדוק גם אם ה-Locality מכיל מילים לא רלוונטיות
-                        if (detectedCity == null || detectedCity.length() < 2 || detectedCity.contains("Ganim")) {
-                            detectedCity = area;
-                        }
 
                         if (detectedCity != null) {
                             matchCityToSpinner(detectedCity);
@@ -258,49 +263,29 @@ public class userpage extends AppCompatActivity {
         }, null);
     }
 
-    // 4. התאמה חכמה לספינר - בודקת אוטומטית לפי המילון שיצרנו!
+    // פעולה לעדכון הספינר באופן אוטומטי לפי העיר שזוהתה
     private void matchCityToSpinner(String detectedCity) {
-        String lowerDetected = detectedCity.toLowerCase().trim();
-
-        // נשתמש ב-GPS כשם המטרה הראשי
-        final String targetCity = findBestMatch(lowerDetected);
-
+        final String targetCity = findBestMatch(detectedCity.toLowerCase().trim());
         spinnerCity.post(() -> {
-            boolean found = false;
             for (int i = 0; i < spinnerCity.getCount(); i++) {
-                // בדיקה אם שם העיר מה-GPS מופיע בספינר
-                if (spinnerCity.getItemAtPosition(i).toString().equals(targetCity)) {
+                if (spinnerCity.getItemAtPosition(i).toString().equalsIgnoreCase(targetCity)) {
                     spinnerCity.setSelection(i);
-                    Toast.makeText(userpage.this, "הספינר עודכן ל: " + targetCity, Toast.LENGTH_SHORT).show();
-                    found = true;
                     break;
                 }
-            }
-            if (!found) {
-                Toast.makeText(userpage.this, "העיר " + targetCity + " לא נמצאה בספינר", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // פונקציית עזר שמתרגמת את ה-GPS לערים שלך
+    // פעולה למציאת השם המדויק מהמילון (התאמה בין עברית לאנגלית)
     private String findBestMatch(String gpsCity) {
-        String city = gpsCity.toLowerCase();
-
-        // בוא נבדוק את הערכים במילון שלך אחד אחד (גם עברית וגם אנגלית)
+        if (gpsCity.contains("rishon") || gpsCity.contains("ראשון") || gpsCity.contains("holon") || gpsCity.contains("חולון")) return "ראשון לציון";
         for (Map.Entry<String, String> entry : cityMap.entrySet()) {
-            String hebrewName = entry.getKey().toLowerCase();
-            String englishName = entry.getValue().toLowerCase();
-
-            // האם ה-GPS אמר משהו שדומה לעברית או לאנגלית של העיר?
-            if (city.contains(hebrewName) || city.contains(englishName) ||
-                    englishName.contains(city) || hebrewName.contains(city)) {
-                return entry.getKey(); // מחזיר את השם בעברית (המפתח בספינר)
-            }
+            if (gpsCity.contains(entry.getKey().toLowerCase()) || gpsCity.contains(entry.getValue().toLowerCase())) return entry.getKey();
         }
-        return "בחר עיר"; // ברירת מחדל
+        return "בחר עיר";
     }
 
-    // קריאה לשרת מזג האוויר
+    // פעולה למשיכת נתונים משרת המזג אוויר (API) - פועלת בשרשור נפרד כדי לא לעצור את המסך
     private void getWeather(String city) {
         new Thread(() -> {
             try {
@@ -311,12 +296,6 @@ public class userpage extends AppCompatActivity {
                 URL url = new URL(urlString);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(15000);
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-
-                int responseCode = connection.getResponseCode();
-                if (responseCode != 200) throw new Exception("Response code: " + responseCode);
 
                 BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder result = new StringBuilder();
@@ -327,6 +306,7 @@ public class userpage extends AppCompatActivity {
                 double temp = json.getJSONObject("main").getDouble("temp");
                 String description = json.getJSONArray("weather").getJSONObject(0).getString("description");
 
+                // עדכון ה-UI מתבצע בשרשור הראשי (Main Thread)
                 runOnUiThread(() -> {
                     tvForecast.setText("תחזית: " + description);
                     tvTemperature.setText("מעלות: " + (int) temp + "°");

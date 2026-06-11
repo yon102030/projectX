@@ -111,7 +111,7 @@ public class TopColorsAdapter extends RecyclerView.Adapter<TopColorsAdapter.Hold
             case "ורוד": return 0xFFE91E63;
             case "טורקיז": return 0xFF00BCD4;
             case "זית": return 0xFF808000;
-            case "תכלת": return 0xFF81D4FA; // הוספנו את תכלת לכאן!
+            case "תכלת": return 0xFF81D4FA;
         }
         // צבע ברירת מחדל אפור במקרה של שגיאה או צבע לא מוכר
         return 0xFF9E9E9E;

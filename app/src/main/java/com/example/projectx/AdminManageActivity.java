@@ -43,6 +43,10 @@ public class AdminManageActivity extends AppCompatActivity {
             "בז","צהוב","כתום","סגול","ורוד","טורקיז","זית","תכלת"
     };
 
+    /**
+     * פעולת האתחול של המסך. מופעלת בעת יצירת ה-Activity.
+     * כאן אנו מאתחלים את המשתנים, מחברים את ה-UI ומפעילים את השליפה מ-Firebase.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,52 +55,65 @@ public class AdminManageActivity extends AppCompatActivity {
         lvColors = findViewById(R.id.lvColors);
         btnBack = findViewById(R.id.btnBack);
 
-        // אתחול ראשוני של המילון (כל הצבעים מתחילים ב-0) והרשימה
+        // אתחול ראשוני של המילון (כל הצבעים מתחילים ב-0) והרשימה.
+        // זה חשוב כדי שגם צבעים שאף אחד עדיין לא בחר, יופיעו ברשימה עם הערך 0.
         colorList.addAll(Arrays.asList(allColors));
         for (String color : allColors) {
             globalColorStats.put(color, 0);
         }
 
-        // חיבור האדפטר
+        // חיבור האדפטר (המתאם) בין רשימת הצבעים (colorList) לבין רכיב ה-ListView שעל המסך
         adapter = new ColorAdapter(this, colorList);
         lvColors.setAdapter(adapter);
 
-        // טעינת הנתונים מפיירבייס
+        // קריאה לפעולה שאחראית לטעון את הנתונים מ-Firebase
         loadGlobalStatistics();
 
+        // סגירת המסך הנוכחי וחזרה למסך הקודם
         btnBack.setOnClickListener(v -> finish());
     }
 
-    // פונקציה חכמה ששואבת את הסטטיסטיקות מכל המשתמשים במסד הנתונים
+    /**
+     * פונקציה חכמה ששואבת את הסטטיסטיקות מכל המשתמשים במסד הנתונים ומשלבת אותן.
+     * זוהי פעולת "משיכה" (Read) אסינכרונית מה-Firebase.
+     */
     private void loadGlobalStatistics() {
+        // קריאה לשירות ה-Database כדי לקבל את רשימת כל המשתמשים באפליקציה
         DatabaseService.getInstance().getUserList(new DatabaseService.DatabaseCallback<List<User>>() {
             @Override
             public void onCompleted(List<User> users) {
                 if (users != null) {
-                    // מעבר על כל המשתמשים באפליקציה
+                    // מעבר (לולאה) על כל משתמש ומשתמש מתוך רשימת המשתמשים שהתקבלה מהשרת
                     for (User u : users) {
+                        // לכל משתמש יש מילון אישי משלו של צבעים וכמה פעמים הוא לחץ עליהם
                         Map<String, Integer> userStats = u.getColorStats();
                         if (userStats != null) {
-                            // מוסיפים את הלחיצות של המשתמש לסך הכל הגלובלי
+                            // מעבר על המילון האישי של המשתמש הנוכחי
                             for (Map.Entry<String, Integer> entry : userStats.entrySet()) {
                                 String colorName = entry.getKey();
                                 int count = entry.getValue();
+
+                                // פעולת הסכימה: לוקחים את הכמות הקיימת במילון הגלובלי (globalColorStats)
+                                // ומוסיפים לה את הכמות שהמשתמש הנוכחי לחץ.
                                 globalColorStats.put(colorName, globalColorStats.getOrDefault(colorName, 0) + count);
                             }
                         }
                     }
 
-                    // מיון הרשימה: מהצבע עם הכי הרבה לחיצות להכי מעט (Leaderboard)
+                    // מיון הרשימה: מהצבע עם הכי הרבה לחיצות להכי מעט (Leaderboard).
+                    // שימוש ב-Comparator מותאם אישית שמשווה בין הערכים (הלחיצות) המאוחסנים במילון הגלובלי.
                     colorList.sort((c1, c2) -> Integer.compare(
                             globalColorStats.getOrDefault(c2, 0),
                             globalColorStats.getOrDefault(c1, 0)
                     ));
 
-                    // רענון הרשימה במסך
+                    // רענון הרשימה במסך. פעולה זו מודיעה לאדפטר שהנתונים (colorList) השתנו
+                    // ושעליו לצייר את הרשימה מחדש.
                     adapter.notifyDataSetChanged();
                 }
             }
 
+            // במקרה של שגיאה בתקשורת או בשליפה, נציג הודעה למנהל
             @Override
             public void onFailed(Exception e) {
                 Toast.makeText(AdminManageActivity.this, "שגיאה בטעינת נתונים", Toast.LENGTH_SHORT).show();
@@ -107,42 +124,65 @@ public class AdminManageActivity extends AppCompatActivity {
     // ==========================================
     // מחלקת מתאם (Adapter)
     // ==========================================
+
+    /**
+     * מחלקה פנימית היורשת מ-ArrayAdapter.
+     * תפקידה: לקחת פריט אחד מרשימת ה-colorList (שם הצבע) ולצייר עבורו שורה מעוצבת ב-ListView.
+     */
     private class ColorAdapter extends ArrayAdapter<String> {
 
+        // בנאי האדפטר: מעביר למחלקת האב את ההקשר (Context), את עיצוב השורה (XML) ואת הרשימה
         public ColorAdapter(Context context, List<String> colors) {
             super(context, R.layout.color_item_row, colors);
         }
 
+        /**
+         * פעולה שנקראת עבור כל שורה ברשימה (ListView) כדי לייצר את התצוגה שלה.
+         * @param position - המיקום (אינדקס) של הפריט הנוכחי ברשימה
+         * @param convertView - השורה המעוצבת (אם כבר נוצרה בעבר ויש למחזר אותה)
+         * @param parent - הרכיב המכיל את השורות (ListView)
+         * @return View - רכיב ה-View השלם המייצג שורה אחת
+         */
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
+            // יעילות: אם convertView הוא null (כלומר שורה חדשה לחלוטין), אנחנו 'מנפחים' (Inflate) את ה-XML
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.color_item_row, parent, false);
             }
 
+            // 1. קבלת הנתונים (מאינדקס position)
             String colorName = getItem(position);
+
+            // 2. קישור למרכיבי ה-UI בשורה הספציפית
             TextView tvName = convertView.findViewById(R.id.tvColorName);
             TextView tvCount = convertView.findViewById(R.id.tvColorCount); // השדה החדש
             View colorCircle = convertView.findViewById(R.id.viewColorCircle);
 
+            // 3. הצבת הנתונים ב-UI
             tvName.setText(colorName);
 
-            // הצגת כמות הלחיצות (שליפה מהמילון הגלובלי)
+            // הצגת כמות הלחיצות (שליפה מהמילון הגלובלי לפי שם הצבע)
             int count = globalColorStats.getOrDefault(colorName, 0);
             tvCount.setText(count + " בחירות");
 
+            // ציור עיגול הצבע באופן דינמי
             int colorValue = getColorValue(colorName);
             GradientDrawable shape = new GradientDrawable();
-            shape.setShape(GradientDrawable.OVAL);
-            shape.setColor(colorValue);
-            shape.setStroke(2, 0xFF000000);
+            shape.setShape(GradientDrawable.OVAL); // הגדרת הצורה לאליפסה/עיגול
+            shape.setColor(colorValue); // מילוי הצבע
+            shape.setStroke(2, 0xFF000000); // מסגרת שחורה דקה
 
+            // החלת הציור (GradientDrawable) כרקע של רכיב ה-View העגול
             colorCircle.setBackground(shape);
 
             return convertView;
         }
 
+        /**
+         * פעולת עזר המתרגמת שם של צבע בעברית ("שחור") לקוד צבע דיגיטלי (Hexadecimal)
+         */
         private int getColorValue(String name) {
             switch (name) {
                 case "שחור": return 0xFF000000;
@@ -161,7 +201,7 @@ public class AdminManageActivity extends AppCompatActivity {
                 case "טורקיז": return 0xFF00BCD4;
                 case "זית": return 0xFF808000;
                 case "תכלת": return 0xFF81D4FA;
-                default: return 0xFF9E9E9E;
+                default: return 0xFF9E9E9E; // במקרה שלא נמצאה התאמה, נחזיר צבע ברירת מחדל אפור
             }
         }
     }

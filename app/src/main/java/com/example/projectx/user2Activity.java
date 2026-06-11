@@ -252,7 +252,7 @@ public class user2Activity extends AppCompatActivity {
     }
 
     // ================= RANDOM =================
-    // פונקציית הקסם שמרכיבה לוק הגיוני
+    // פונקצייה שמרכיבה לוק הגיוני
     private void setRandomLook() {
         Clothe selectedTop = null;
 
